@@ -6,13 +6,19 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 import com.github.bustedearlobes.themis.util.ThemisLogFormatter;
 
+import net.dv8tion.jda.core.JDA;
+
 public class Themis {
-	private Logger logger;
+	private static Logger logger;
+	private JDA jda;
+	private TaskManager taskManager;
 	
 	public Themis() {
 		initLogger();
+		taskManager = new TaskManager();
 	}
 	
 	/**
@@ -38,13 +44,13 @@ public class Themis {
 	}
 	
 	public void start() {
-		
+	    new Thread(taskManager, "TaskManager").start();
 	}
 	
 	public void shutdown() {
 		logger.log(Level.INFO, "Shutting down Themis");
-		
 	}
+	
 	
 	public static void main(String[] args) {
 		Themis themis = new Themis();
