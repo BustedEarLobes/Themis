@@ -105,7 +105,9 @@ public class TaskManager implements Runnable {
                 ObjectInputStream ois = new ObjectInputStream(bis)) {
             int numberOfTasks = ois.readInt();
             for(int count = 0; count < numberOfTasks; count ++) {
-                addTask((ScheduledTask)ois.readObject());
+                ScheduledTask task = (ScheduledTask)ois.readObject();
+                task.recalculateRunTime(ois.readLong());
+                addTask(task);
                 count ++;
             }
             LOG.log(Level.INFO, "Task manager state loaded " + numberOfTasks + " tasks from " + STATE_FILE.getCanonicalPath());
@@ -124,6 +126,7 @@ public class TaskManager implements Runnable {
                     oos.writeInt(scheduledTasks.size());
                     for(ScheduledTask task : scheduledTasks) {
                         oos.writeObject(task);
+                        oos.writeLong(task.getTimeUntilNextRun());
                     }
                 }
         } catch(IOException e) {
