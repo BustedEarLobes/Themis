@@ -24,10 +24,15 @@ public class HelpCommand extends Command {
                     }
                 }
             } else {
-                StringBuilder sb = new StringBuilder(1000);
+                StringBuilder sb = new StringBuilder(4000);
                 sb.append("Commands:\n\n");
                 for(Command command : themis.getCommandListener().getCommands()) {
                     sb.append(command.getCommandManual()).append("\n");
+                }
+                String outString = sb.toString();
+                while(outString.length() >= 2000) {
+                    message.getTextChannel().sendMessage(outString.substring(0, 2000)).complete();
+                    outString = outString.substring(1999);
                 }
                 message.getTextChannel().sendMessage(sb.toString()).complete();
             }
