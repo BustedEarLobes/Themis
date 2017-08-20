@@ -1,6 +1,7 @@
 package com.github.bustedearlobes.themis.taskmanager;
 
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,10 +24,10 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     private long timeOfNextRun;
     private transient JDA jda;
     
-    public ScheduledTask(long delay, long periodicity, long repeat) {
-        this.periodicity = periodicity;
+    public ScheduledTask(long delay, long periodicity, TimeUnit timeUnit, long repeat) {
+        this.periodicity = timeUnit.toMillis(periodicity);
+        this.timeOfNextRun = System.currentTimeMillis() + timeUnit.toMillis(delay);
         this.repeat = repeat;
-        this.timeOfNextRun = System.currentTimeMillis() + delay;
         this.numberOfRuns = 0;
     }
 
