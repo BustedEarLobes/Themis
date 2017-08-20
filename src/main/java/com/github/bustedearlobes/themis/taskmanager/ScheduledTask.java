@@ -15,14 +15,13 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     private long repeat;
     private long numberOfRuns;
     private long timeOfNextRun;
-    private JDA jda;
+    private transient JDA jda;
     
-    public ScheduledTask(long delay, long periodicity, long repeat, JDA jda) {
+    public ScheduledTask(long delay, long periodicity, long repeat) {
         this.periodicity = periodicity;
         this.repeat = repeat;
         this.timeOfNextRun = System.currentTimeMillis() + delay;
         this.numberOfRuns = 0;
-        this.jda = jda;
     }
 
     protected boolean taskIsReady() {
@@ -34,7 +33,14 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     }
     
     protected JDA getJDA() {
+        if(jda == null) {
+            LOG.log(Level.SEVERE, "JDA not set in task");
+        }
         return jda;
+    }
+    
+    protected void setJDA(JDA jda) {
+        this.jda = jda;
     }
 
     @Override

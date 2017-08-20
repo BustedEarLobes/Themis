@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.dv8tion.jda.core.JDA;
+
 public class TaskManager implements Runnable {
     private static final Logger LOG = Logger.getLogger("Themis");
     private static final File STATE_FILE = new File("themis_state.dat");
@@ -24,13 +26,16 @@ public class TaskManager implements Runnable {
     private List<ScheduledTask> scheduledTasks;
     private AtomicBoolean isRunning;
     private ExecutorService executor = Executors.newCachedThreadPool();
+    private JDA jda;
     
-    public TaskManager() {
+    public TaskManager(JDA jda) {
         scheduledTasks = new LinkedList<>();
+        this.jda = jda;
         loadOldState();
     }
     
     public void addTaskToScheduler(ScheduledTask task) {
+        task.setJDA(jda);
         synchronized(scheduledTasks) {
             scheduledTasks.add(task);
         }

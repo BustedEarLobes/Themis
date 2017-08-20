@@ -6,6 +6,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.bustedearlobes.themis.commands.CommandListener;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 import com.github.bustedearlobes.themis.util.ThemisLogFormatter;
 
@@ -15,10 +16,10 @@ public class Themis {
 	private static Logger logger;
 	private JDA jda;
 	private TaskManager taskManager;
+	private CommandListener commandListener;
 	
 	public Themis() {
 		initLogger();
-		taskManager = new TaskManager();
 	}
 	
 	/**
@@ -51,6 +52,9 @@ public class Themis {
 		logger.log(Level.INFO, "Shutting down Themis");
 	}
 	
+	public TaskManager getTaskManager() {
+	   return taskManager; 
+	}
 	
 	public static void main(String[] args) {
 		Themis themis = new Themis();
