@@ -32,7 +32,7 @@ public class UnmuteCommand extends Command {
                     false,
                     0,
                     TimeUnit.SECONDS);
-            themis.getTaskManager().addTaskToScheduler(unmuteTask);
+            themis.getTaskManager().addTask(unmuteTask);
         }
     }
     

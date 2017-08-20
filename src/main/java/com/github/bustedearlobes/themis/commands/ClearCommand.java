@@ -31,7 +31,7 @@ public class ClearCommand extends Command {
                 targetChannel,
                 numOfMessages,
                 message.getTextChannel());
-        themis.getTaskManager().addTaskToScheduler(cmt);
+        themis.getTaskManager().addTask(cmt);
     }
     
     @Override

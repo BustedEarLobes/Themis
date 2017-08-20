@@ -29,7 +29,7 @@ public class MuteCommand extends Command {
                     channel,
                     message.getTextChannel(),
                     true);
-            themis.getTaskManager().addTaskToScheduler(muteTask);
+            themis.getTaskManager().addTask(muteTask);
             if(parsedCommand.group(4) != null) {
                 TimeUnit timeUnit = parseTimeUnit(parsedCommand.group(6));
                 long time = Integer.parseInt(parsedCommand.group(5));
@@ -40,7 +40,7 @@ public class MuteCommand extends Command {
                         false,
                         time,
                         timeUnit);
-                themis.getTaskManager().addTaskToScheduler(unmuteTask);
+                themis.getTaskManager().addTask(unmuteTask);
             }
         }
     }

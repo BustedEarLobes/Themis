@@ -2,6 +2,7 @@ package com.github.bustedearlobes.themis.taskmanager;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,6 +23,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     private long repeat;
     private long numberOfRuns;
     private long timeOfNextRun;
+    private AtomicBoolean isComplete;
     private transient JDA jda;
     
     public ScheduledTask(long delay, long periodicity, TimeUnit timeUnit, long repeat) {
@@ -29,6 +31,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         this.timeOfNextRun = System.currentTimeMillis() + timeUnit.toMillis(delay);
         this.repeat = repeat;
         this.numberOfRuns = 0;
+        this.isComplete = new AtomicBoolean(false);
     }
 
     protected boolean taskIsReady() {
@@ -105,6 +108,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         } finally {
             jda.removeEventListener(this);
         }
+        isComplete.set(true);
     }
     
     public final void incrementRun() {
@@ -112,6 +116,10 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         if(repeat != Long.MAX_VALUE) {
             numberOfRuns++;
         }
+    }
+    
+    public boolean isComplete() {
+        return isComplete.get();
     }
 
     protected abstract void runTask();

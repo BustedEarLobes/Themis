@@ -36,12 +36,19 @@ public class TaskManager implements Runnable {
         STATE_FILE.delete();
     }
     
-    public void addTaskToScheduler(ScheduledTask task) {
+    public void addTask(ScheduledTask task) {
         task.setJDA(jda);
         synchronized(scheduledTasks) {
             scheduledTasks.add(task);
         }
         saveState();
+    }
+    
+    public void addTaskBlocked(ScheduledTask task) throws InterruptedException {
+        addTask(task);
+        while(!task.isComplete()) {
+            Thread.sleep(100);
+        }
     }
     
     @Override
@@ -98,7 +105,7 @@ public class TaskManager implements Runnable {
                 ObjectInputStream ois = new ObjectInputStream(bis)) {
             int numberOfTasks = ois.readInt();
             for(int count = 0; count < numberOfTasks; count ++) {
-                addTaskToScheduler((ScheduledTask)ois.readObject());
+                addTask((ScheduledTask)ois.readObject());
                 count ++;
             }
             LOG.log(Level.INFO, "Task manager state loaded " + numberOfTasks + " tasks from " + STATE_FILE.getCanonicalPath());
