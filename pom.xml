@@ -27,7 +27,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.bustedearlobes.App</mainClass>
+                            <mainClass>com.github.bustedearlobes.themis.Themis</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
