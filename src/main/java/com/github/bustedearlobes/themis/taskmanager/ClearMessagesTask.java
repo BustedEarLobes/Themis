@@ -34,8 +34,8 @@ public class ClearMessagesTask extends InstantTask {
         Guild guild = getGuildById(guildId);
         TextChannel targetChannel = getTextChannelById(targetChannelId, guild);
         List<Message> messages = targetChannel.getIterableHistory().stream()
-            .limit(numberOfMessages)
             .filter(m -> m.getAuthor().getId().equals(targetUserId))
+            .limit(numberOfMessages)
             .collect(Collectors.toList());
         if(messages.size() < 2) {
             if(messages.size() > 0) {
