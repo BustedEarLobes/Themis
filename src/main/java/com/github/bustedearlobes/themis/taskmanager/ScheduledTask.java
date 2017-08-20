@@ -4,7 +4,13 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.bustedearlobes.themis.exceptions.EntityNotFoundException;
+
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public abstract class ScheduledTask extends ListenerAdapter implements Runnable, Serializable {
@@ -41,6 +47,44 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     
     protected void setJDA(JDA jda) {
         this.jda = jda;
+    }
+    
+    protected Guild getGuildById(String guildId) {
+        Guild guild = getJDA().getGuildById(guildId);
+        if(guild == null) {
+            throw new EntityNotFoundException("Could not find group from id " + guildId);
+        }
+        return guild;
+    }
+    
+    private Member getMemberById(String memberId, Guild guild) {
+        Member member = guild.getMemberById(memberId);
+        if(member == null) {
+            throw new EntityNotFoundException("Could not find member from id "
+                                            + memberId
+                                            + " in guild "
+                                            + guild.getName());
+        }
+        return member;
+    }
+    
+    private TextChannel getTextChannelById(String textChannelId, Guild guild) {
+        TextChannel textChannel = guild.getTextChannelById(textChannelId);
+        if(textChannel == null) {
+            throw new EntityNotFoundException("Could not find textChannel from id " 
+                                            + textChannelId
+                                            + " in guild "
+                                            + guild.getName());
+        }
+        return textChannel;
+    }
+    
+    private User getUserById(String userId) {
+        User user = jda.getUserById(userId);
+        if(user == null) {
+            throw new EntityNotFoundException("Could not find user from id " + userId);
+        }
+        return user;
     }
 
     @Override
