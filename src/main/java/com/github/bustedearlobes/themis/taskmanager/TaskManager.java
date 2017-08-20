@@ -39,8 +39,9 @@ public class TaskManager implements Runnable {
         synchronized(scheduledTasks) {
             scheduledTasks.add(task);
         }
+        saveState();
     }
-
+    
     @Override
     public void run() {
         isRunning = new AtomicBoolean(true);
@@ -75,7 +76,7 @@ public class TaskManager implements Runnable {
         }
         saveState();
     }
-    
+
     private void loadOldState() {
         try(FileInputStream fis = new FileInputStream(STATE_FILE)) {
             BufferedInputStream bis = new BufferedInputStream(fis);
@@ -96,8 +97,10 @@ public class TaskManager implements Runnable {
         try(FileOutputStream fos = new FileOutputStream(STATE_FILE)) {
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             ObjectOutputStream oos = new ObjectOutputStream(bos);
-            for(ScheduledTask task : scheduledTasks) {
-                oos.writeObject(task);
+            synchronized(scheduledTasks) {
+                for(ScheduledTask task : scheduledTasks) {
+                    oos.writeObject(task);
+                }
             }
             LOG.log(Level.INFO, "Task manager state saved to " + STATE_FILE.getCanonicalPath());
         } catch(IOException e) {
