@@ -57,7 +57,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         return guild;
     }
     
-    private Member getMemberById(String memberId, Guild guild) {
+    protected Member getMemberById(String memberId, Guild guild) {
         Member member = guild.getMemberById(memberId);
         if(member == null) {
             throw new EntityNotFoundException("Could not find member from id "
@@ -68,7 +68,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         return member;
     }
     
-    private TextChannel getTextChannelById(String textChannelId, Guild guild) {
+    protected TextChannel getTextChannelById(String textChannelId, Guild guild) {
         TextChannel textChannel = guild.getTextChannelById(textChannelId);
         if(textChannel == null) {
             throw new EntityNotFoundException("Could not find textChannel from id " 
@@ -79,7 +79,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         return textChannel;
     }
     
-    private User getUserById(String userId) {
+    protected User getUserById(String userId) {
         User user = jda.getUserById(userId);
         if(user == null) {
             throw new EntityNotFoundException("Could not find user from id " + userId);
