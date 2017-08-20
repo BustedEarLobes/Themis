@@ -11,7 +11,7 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
-    private static final String COMMAND_BASE = "!";
+    public static final String COMMAND_BASE = "!";
     private static final Logger LOG = Logger.getLogger("Themis");
     
     private List<Command> commands = new ArrayList<>();
@@ -25,24 +25,32 @@ public class CommandListener extends ListenerAdapter {
         commands.add(command);
     }
     
+    public List<Command> getCommands() {
+        return commands;
+    }
+    
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         if(event.getMember().isOwner()) {
             String messageContent = event.getMessage().getContent();
             if(messageContent.trim().startsWith(COMMAND_BASE)) {
                 messageContent = messageContent.trim().replaceFirst(COMMAND_BASE, "");
-                
+                String commandName = messageContent.trim().split(" ")[0];
                 for(Command command: commands) {
-                    if(command.validateCall(messageContent)) {
-                        try {
-                            command.onCall(command.parseCommand(messageContent),
-                                    event.getMessage(),
-                                    event.getJDA(),
-                                    themis);
-                        } catch(Exception e) {
-                            LOG.log(Level.WARNING,
-                                    "There was an error while executing a command.",
-                                    e);
+                    if(commandName.equals(command.getCommandName())) {
+                        if(command.validateCall(messageContent)) {
+                            try {
+                                command.onCall(command.parseCommand(messageContent),
+                                        event.getMessage(),
+                                        event.getJDA(),
+                                        themis);
+                            } catch(Exception e) {
+                                LOG.log(Level.WARNING,
+                                        "There was an error while executing a command.",
+                                        e);
+                            }
+                        } else {
+                            command.printUsage(event.getMessage().getTextChannel());
                         }
                     }
                 }

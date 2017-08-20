@@ -15,7 +15,7 @@ public class UnmuteCommand extends Command {
     
     
     public UnmuteCommand() {
-        super(REGEX);
+        super("unmute", REGEX);
     }
 
     @Override
@@ -34,5 +34,21 @@ public class UnmuteCommand extends Command {
                     TimeUnit.SECONDS);
             themis.getTaskManager().addTaskToScheduler(unmuteTask);
         }
+    }
+    
+    @Override
+    public String getDiscription() {
+        return "Unmute user(s). If channel is not given, defaults to channel in which this "
+                + "command was sent.";
+    }
+
+    @Override
+    public String getHumanReadablePattern() {
+        return "@user(1+) #channel(0,1)";
+    }
+
+    @Override
+    public String getExampleUsage() {
+        return "@innocent#1953 #general";
     }
 }

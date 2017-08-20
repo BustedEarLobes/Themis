@@ -7,12 +7,15 @@ import com.github.bustedearlobes.themis.Themis;
 
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.TextChannel;
 
 public abstract class Command {
     private Pattern pattern;
+    private String commandName;
     
-    public Command(String regexValidation) {
+    public Command(String commandName, String regexValidation) {
         pattern = Pattern.compile(regexValidation);
+        this.commandName = commandName;
     }
     
     protected boolean validateCall(String command) {
@@ -25,5 +28,47 @@ public abstract class Command {
         return m;
     }
     
-    public abstract void onCall(Matcher fullCommand, Message message, JDA jda, Themis themis);
+    public final String getCommandName() {
+        return commandName;
+    }
+    
+    public String getDiscription() {
+        return "No discription for this command...";
+    }
+    public String getHumanReadablePattern() {
+        return "";
+    }
+    
+    public String getExampleUsage() {
+        return "";
+    }
+    
+    public final StringBuilder getFullCommandManual() {
+        StringBuilder sb = new StringBuilder(100);
+        sb.append("__**").append(CommandListener.COMMAND_BASE).append(getCommandName()).append("**__\n")
+            .append("**Description:**\n")
+            .append(getDiscription()).append("\n")
+            .append("**Pattern:**\n")
+            .append(CommandListener.COMMAND_BASE).append(getCommandName()).append(" ")
+                .append(getHumanReadablePattern()).append("\n")
+            .append("**Example:**\n")
+            .append(CommandListener.COMMAND_BASE).append(getCommandName()).append(" ")
+                .append(getExampleUsage()).append("\n");
+        return sb;
+    }
+    
+    public final StringBuilder getCommandManual() {
+        StringBuilder sb = new StringBuilder(100);
+        sb.append("__**").append(CommandListener.COMMAND_BASE).append(getCommandName()).append("**__\n")
+            .append("**Description:**\n")
+            .append(getDiscription()).append("\n");
+        return sb;
+    }
+    
+    public void printUsage(TextChannel textChannel) {
+        textChannel.sendMessage("Usage:\n\n" + getFullCommandManual().toString()).complete();
+    }
+    
+    protected abstract void onCall(Matcher fullCommand, Message message, JDA jda, Themis themis);
+
 }

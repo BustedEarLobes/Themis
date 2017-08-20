@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.bustedearlobes.themis.commands.CommandListener;
+import com.github.bustedearlobes.themis.commands.HelpCommand;
 import com.github.bustedearlobes.themis.commands.MuteCommand;
 import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
@@ -105,6 +106,7 @@ public class Themis {
         commandListener.register(new MuteCommand());
         commandListener.register(new UnmuteCommand());
         commandListener.register(new ShutdownCommand());
+        commandListener.register(new HelpCommand());
     }
     
     /**
@@ -138,10 +140,18 @@ public class Themis {
     /**
      * Gets the Themis task manager. Used to add tasks to the queue.
      * 
-     * @return The themis task manager.
+     * @return The Themis task manager.
      */
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+    
+    /**
+     * Gets the command listener object.
+     * @return The Themis command listener
+     */
+    public CommandListener getCommandListener() {
+        return commandListener;
     }
 
     /**

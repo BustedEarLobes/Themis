@@ -13,7 +13,7 @@ public class ShutdownCommand extends Command {
     private static final String REGEX = "^shutdown$";
     
     public ShutdownCommand() {
-        super(REGEX);
+        super("shutdown", REGEX);
     }
 
     @Override
@@ -25,5 +25,9 @@ public class ShutdownCommand extends Command {
             System.exit(0);
         }
     }
-
+    
+    @Override
+    public String getDiscription() {
+        return "Shuts down themis. Does nothing if you are not the Themis server owner.";
+    }
 }

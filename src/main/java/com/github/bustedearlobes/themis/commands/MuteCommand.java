@@ -15,7 +15,7 @@ public class MuteCommand extends Command {
     
     
     public MuteCommand() {
-        super(REGEX);
+        super("mute", REGEX);
     }
 
     @Override
@@ -64,6 +64,22 @@ public class MuteCommand extends Command {
             timeUnit = TimeUnit.SECONDS;
         }
         return timeUnit;
+    }
+
+    @Override
+    public String getDiscription() {
+        return "Mutes user(s). If channel is not given, defaults to channel in which this "
+                + "command was sent. If the time is not given, defaults to infinity.";
+    }
+
+    @Override
+    public String getHumanReadablePattern() {
+        return "@user(1+) #channel(0,1) time(s|m|h|d)";
+    }
+
+    @Override
+    public String getExampleUsage() {
+        return "@victim#1953 #general 5m";
     }
 
 }
