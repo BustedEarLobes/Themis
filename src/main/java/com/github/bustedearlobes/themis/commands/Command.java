@@ -20,7 +20,9 @@ public abstract class Command {
     }
     
     public Matcher parseCommand(String command) {
-        return pattern.matcher(command);
+        Matcher m = pattern.matcher(command);
+        m.find();
+        return m;
     }
     
     public abstract void onCall(Matcher fullCommand, Message message, JDA jda, Themis themis);

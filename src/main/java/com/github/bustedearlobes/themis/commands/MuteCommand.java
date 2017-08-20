@@ -4,14 +4,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import com.github.bustedearlobes.themis.Themis;
-import com.github.bustedearlobes.themis.taskmanager.MuteMemberTask;
-import com.github.bustedearlobes.themis.taskmanager.UnmuteMemberTask;
+import com.github.bustedearlobes.themis.taskmanager.MuteToggleTask;
 
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.TextChannel;
 
 public class MuteCommand extends Command {
-    private static final String REGEX = "^(mute)( @[A-z0-9]+)+( (\\d+)(s|m|h|d)){0,1}$";
+    private static final String REGEX = "^(mute)( @\\w+)+( #\\w+){0,1}( (\\d+)(s|m|h|d)){0,1}$";
     
     
     public MuteCommand() {
@@ -21,14 +21,23 @@ public class MuteCommand extends Command {
     @Override
     public void onCall(Matcher parsedCommand, Message message, JDA jda, Themis themis) {
         if(message.getMentionedUsers().size() > 0) {
-            MuteMemberTask muteTask = new MuteMemberTask(message.getMentionedUsers(), message.getTextChannel());
+            TextChannel channel = message.getTextChannel();
+            if(message.getMentionedChannels().size() > 0) {
+                channel = message.getMentionedChannels().get(0);
+            }
+            MuteToggleTask muteTask = new MuteToggleTask(message.getMentionedUsers(),
+                    channel,
+                    message.getTextChannel(),
+                    true);
             themis.getTaskManager().addTaskToScheduler(muteTask);
-            if(parsedCommand.group(3) != null) {
-                TimeUnit timeUnit = parseTimeUnit(parsedCommand.group(5));
-                long time = Integer.parseInt(parsedCommand.group(4));
-                UnmuteMemberTask unmuteTask = new UnmuteMemberTask(
+            if(parsedCommand.group(4) != null) {
+                TimeUnit timeUnit = parseTimeUnit(parsedCommand.group(6));
+                long time = Integer.parseInt(parsedCommand.group(5));
+                MuteToggleTask unmuteTask = new MuteToggleTask(
                         message.getMentionedUsers(),
+                        channel,
                         message.getTextChannel(),
+                        false,
                         time,
                         timeUnit);
                 themis.getTaskManager().addTaskToScheduler(unmuteTask);

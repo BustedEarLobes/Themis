@@ -11,6 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.bustedearlobes.themis.commands.CommandListener;
+import com.github.bustedearlobes.themis.commands.MuteCommand;
+import com.github.bustedearlobes.themis.commands.UnmuteCommand;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 import com.github.bustedearlobes.themis.util.ThemisLogFormatter;
 
@@ -77,7 +79,7 @@ public class Themis {
         try(FileInputStream fis = new FileInputStream(apiKey);
                 BufferedInputStream bis = new BufferedInputStream(fis);
                 Scanner scanner = new Scanner(bis);) {
-            String key = scanner.nextLine();
+            String key = scanner.nextLine().trim();
             jda = new JDABuilder(AccountType.BOT).setToken(key).buildBlocking();
             logger.info("JDA session succesfully started.");
         } catch(IOException e) {
@@ -96,6 +98,9 @@ public class Themis {
     private void initCommandListener() {
         commandListener = new CommandListener(this);
         jda.addEventListener(commandListener);
+        
+        commandListener.register(new MuteCommand());
+        commandListener.register(new UnmuteCommand());
     }
     
     /**
@@ -110,6 +115,16 @@ public class Themis {
      */
     public void start() {
         new Thread(taskManager, "TaskManager").start();
+        logger.info("Themis started succesfully!");
+    }
+    
+    /**
+     * Shutsdown themis
+     */
+    public void shutdown() {
+        taskManager.shutdown();
+        jda.shutdown();
+        
     }
 
     /**
@@ -121,6 +136,9 @@ public class Themis {
         return taskManager;
     }
 
+    /**
+     * @param args
+     */
     public static void main(String[] args) {
         Themis themis;
         if(args.length == 1) {
@@ -129,5 +147,8 @@ public class Themis {
             themis = new Themis();
         }
         themis.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(()->{
+            themis.shutdown();
+        }));
     }
 }

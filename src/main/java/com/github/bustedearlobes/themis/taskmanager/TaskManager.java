@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -32,6 +33,7 @@ public class TaskManager implements Runnable {
         scheduledTasks = new LinkedList<>();
         this.jda = jda;
         loadOldState();
+        STATE_FILE.delete();
     }
     
     public void addTaskToScheduler(ScheduledTask task) {
@@ -47,17 +49,29 @@ public class TaskManager implements Runnable {
         isRunning = new AtomicBoolean(true);
         while(isRunning.get()) {
             ScheduledTask task;
+            boolean stateChanged = false;
             synchronized(scheduledTasks) {
                 for(int i = 0; i < scheduledTasks.size(); i++) {
                     task = scheduledTasks.get(i);
                     if(task.taskIsReady()) {
                         executor.execute(task);
+                        task.incrementRun();
                     }
                     if(task.isExpired()) {
+                        stateChanged = true; 
                         scheduledTasks.remove(i);
                         i--;
                     }
                 }
+            }
+            if(stateChanged) {
+                saveState();
+            }
+            
+            try {
+                TimeUnit.MICROSECONDS.sleep(5);
+            } catch(InterruptedException e) {
+                LOG.log(Level.WARNING, "Interrupted main taskmanager thread.", e);
             }
         }
     }
@@ -74,35 +88,37 @@ public class TaskManager implements Runnable {
         } catch(InterruptedException e) {
             LOG.log(Level.WARNING, "Could not shut down task manager safely. Interrupted Exception.", e);
         }
+        LOG.log(Level.INFO, "Saving task manager state.");
         saveState();
     }
 
     private void loadOldState() {
-        try(FileInputStream fis = new FileInputStream(STATE_FILE)) {
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            Object obj;
-            int count = 0;
-            while((obj = ois.readObject()) != null) {
-                addTaskToScheduler((ScheduledTask)obj);
+        try(FileInputStream fis = new FileInputStream(STATE_FILE);
+                BufferedInputStream bis = new BufferedInputStream(fis);
+                ObjectInputStream ois = new ObjectInputStream(bis)) {
+            int numberOfTasks = ois.readInt();
+            for(int count = 0; count < numberOfTasks; count ++) {
+                addTaskToScheduler((ScheduledTask)ois.readObject());
                 count ++;
             }
-            LOG.log(Level.INFO, "Task manager state loaded " + count + " tasks from " + STATE_FILE.getCanonicalPath());
+            LOG.log(Level.INFO, "Task manager state loaded " + numberOfTasks + " tasks from " + STATE_FILE.getCanonicalPath());
+        } catch(FileNotFoundException e) {
+            LOG.log(Level.INFO, "No state to load. State file does not exist.");
         } catch(IOException | ClassNotFoundException e) {
             LOG.log(Level.SEVERE, "Could not load task manager state.", e);
         }
     }
     
     private void saveState() {
-        try(FileOutputStream fos = new FileOutputStream(STATE_FILE)) {
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            synchronized(scheduledTasks) {
-                for(ScheduledTask task : scheduledTasks) {
-                    oos.writeObject(task);
+        try(FileOutputStream fos = new FileOutputStream(STATE_FILE);
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
+                ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+                synchronized(scheduledTasks) {
+                    oos.writeInt(scheduledTasks.size());
+                    for(ScheduledTask task : scheduledTasks) {
+                        oos.writeObject(task);
+                    }
                 }
-            }
-            LOG.log(Level.INFO, "Task manager state saved to " + STATE_FILE.getCanonicalPath());
         } catch(IOException e) {
             LOG.log(Level.SEVERE, "Could not save task manager state. Scheduled tasks not saved on shutdown!", e);
         }

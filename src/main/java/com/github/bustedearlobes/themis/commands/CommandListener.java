@@ -2,6 +2,8 @@ package com.github.bustedearlobes.themis.commands;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.github.bustedearlobes.themis.Themis;
 
@@ -10,6 +12,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
     private static final String COMMAND_BASE = "!";
+    private static final Logger LOG = Logger.getLogger("Themis");
     
     private List<Command> commands = new ArrayList<>();
     private Themis themis;
@@ -31,10 +34,16 @@ public class CommandListener extends ListenerAdapter {
                 
                 for(Command command: commands) {
                     if(command.validateCall(messageContent)) {
-                        command.onCall(command.parseCommand(messageContent),
-                                event.getMessage(),
-                                event.getJDA(),
-                                themis);
+                        try {
+                            command.onCall(command.parseCommand(messageContent),
+                                    event.getMessage(),
+                                    event.getJDA(),
+                                    themis);
+                        } catch(Exception e) {
+                            LOG.log(Level.WARNING,
+                                    "There was an error while executing a command.",
+                                    e);
+                        }
                     }
                 }
             }

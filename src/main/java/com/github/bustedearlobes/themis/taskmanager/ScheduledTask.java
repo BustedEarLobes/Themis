@@ -105,6 +105,9 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         } finally {
             jda.removeEventListener(this);
         }
+    }
+    
+    public final void incrementRun() {
         timeOfNextRun = System.currentTimeMillis() + periodicity;
         if(repeat != Long.MAX_VALUE) {
             numberOfRuns++;
