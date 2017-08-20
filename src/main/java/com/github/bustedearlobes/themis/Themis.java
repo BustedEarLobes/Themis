@@ -10,6 +10,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.bustedearlobes.themis.commands.ClearCommand;
 import com.github.bustedearlobes.themis.commands.CommandListener;
 import com.github.bustedearlobes.themis.commands.HelpCommand;
 import com.github.bustedearlobes.themis.commands.MuteCommand;
@@ -107,6 +108,7 @@ public class Themis {
         commandListener.register(new UnmuteCommand());
         commandListener.register(new ShutdownCommand());
         commandListener.register(new HelpCommand());
+        commandListener.register(new ClearCommand());
     }
     
     /**
