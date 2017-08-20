@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import com.github.bustedearlobes.themis.commands.CommandListener;
 import com.github.bustedearlobes.themis.commands.MuteCommand;
+import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 import com.github.bustedearlobes.themis.util.ThemisLogFormatter;
@@ -25,6 +26,7 @@ public class Themis {
     private JDA jda;
     private TaskManager taskManager;
     private CommandListener commandListener;
+    private String themisOwner;
 
     public Themis() {
         initLogger();
@@ -80,6 +82,7 @@ public class Themis {
                 BufferedInputStream bis = new BufferedInputStream(fis);
                 Scanner scanner = new Scanner(bis);) {
             String key = scanner.nextLine().trim();
+            themisOwner = scanner.nextLine().trim();
             jda = new JDABuilder(AccountType.BOT).setToken(key).buildBlocking();
             logger.info("JDA session succesfully started.");
         } catch(IOException e) {
@@ -101,6 +104,7 @@ public class Themis {
         
         commandListener.register(new MuteCommand());
         commandListener.register(new UnmuteCommand());
+        commandListener.register(new ShutdownCommand());
     }
     
     /**
@@ -125,6 +129,10 @@ public class Themis {
         taskManager.shutdown();
         jda.shutdown();
         
+    }
+    
+    public String getThemisOwner() {
+        return themisOwner;
     }
 
     /**
