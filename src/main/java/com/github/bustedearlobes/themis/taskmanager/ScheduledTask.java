@@ -33,6 +33,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         this.repeat = repeat;
         this.numberOfRuns = 0;
         this.isComplete = new AtomicBoolean(false);
+        this.isInProgress = new AtomicBoolean(false);
     }
 
     protected boolean taskIsReady() {
@@ -62,11 +63,11 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         return guild;
     }
     
-    protected Member getMemberById(String memberId, Guild guild) {
-        Member member = guild.getMemberById(memberId);
+    protected Member getMemberById(String userId, Guild guild) {
+        Member member = guild.getMemberById(userId);
         if(member == null) {
             throw new EntityNotFoundException("Could not find member from id "
-                                            + memberId
+                                            + userId
                                             + " in guild "
                                             + guild.getName());
         }
@@ -119,6 +120,8 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
             numberOfRuns++;
         }
     }
+    
+    public void shutdown() { }
     
     public boolean isComplete() {
         return isComplete.get();

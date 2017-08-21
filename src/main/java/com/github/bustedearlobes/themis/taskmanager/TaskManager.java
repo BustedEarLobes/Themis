@@ -67,6 +67,7 @@ public class TaskManager implements Runnable {
                     if(task.isExpired()) {
                         stateChanged = true; 
                         scheduledTasks.remove(i);
+                        task.shutdown();
                         i--;
                     }
                 }
@@ -85,18 +86,15 @@ public class TaskManager implements Runnable {
 
     public void shutdown() {
         isRunning.set(false);
-        executor.shutdown();
-        LOG.info("Shutting down task manager. Awaiting 5 seconds max for safe task exit...");
-        try {
-            if(!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                LOG.warning("Could not shut down task manager safely. Timeout exceded");
-                executor.shutdownNow();
+        synchronized(scheduledTasks) {
+            for(ScheduledTask task : scheduledTasks) {
+                task.shutdown();
             }
-        } catch(InterruptedException e) {
-            LOG.log(Level.WARNING, "Could not shut down task manager safely. Interrupted Exception.", e);
         }
         LOG.log(Level.INFO, "Saving task manager state.");
         saveState();
+        executor.shutdown();
+        LOG.info("Shutting down task manager. Awaiting 5 seconds max for safe task exit...");
     }
 
     private void loadOldState() {

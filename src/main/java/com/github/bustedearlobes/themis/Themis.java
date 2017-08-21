@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import com.github.bustedearlobes.themis.commands.ClearCommand;
 import com.github.bustedearlobes.themis.commands.CommandListener;
 import com.github.bustedearlobes.themis.commands.HelpCommand;
+import com.github.bustedearlobes.themis.commands.JailCommand;
 import com.github.bustedearlobes.themis.commands.MuteCommand;
 import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
@@ -109,6 +110,7 @@ public class Themis {
         commandListener.register(new ShutdownCommand());
         commandListener.register(new HelpCommand());
         commandListener.register(new ClearCommand());
+        commandListener.register(new JailCommand());
     }
     
     /**
