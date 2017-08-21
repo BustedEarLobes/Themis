@@ -60,7 +60,7 @@ public class TaskManager implements Runnable {
             synchronized(scheduledTasks) {
                 for(int i = 0; i < scheduledTasks.size(); i++) {
                     task = scheduledTasks.get(i);
-                    if(task.taskIsReady()) {
+                    if(task.taskIsReady() && !task.isInProgress()) {
                         executor.execute(task);
                         task.incrementRun();
                     }
@@ -86,9 +86,9 @@ public class TaskManager implements Runnable {
     public void shutdown() {
         isRunning.set(false);
         executor.shutdown();
-        LOG.info("Shutting down task manager. Awaiting 30 seconds max for safe task exit...");
+        LOG.info("Shutting down task manager. Awaiting 5 seconds max for safe task exit...");
         try {
-            if(!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+            if(!executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 LOG.warning("Could not shut down task manager safely. Timeout exceded");
                 executor.shutdownNow();
             }
