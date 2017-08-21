@@ -60,7 +60,7 @@ public class TaskManager implements Runnable {
             synchronized(scheduledTasks) {
                 for(int i = 0; i < scheduledTasks.size(); i++) {
                     task = scheduledTasks.get(i);
-                    if(task.taskIsReady()) {
+                    if(task.taskIsReady() && !task.isInProgress()) {
                         executor.execute(task);
                         task.incrementRun();
                     }
@@ -86,9 +86,9 @@ public class TaskManager implements Runnable {
     public void shutdown() {
         isRunning.set(false);
         executor.shutdown();
-        LOG.info("Shutting down task manager. Awaiting 30 seconds max for safe task exit...");
+        LOG.info("Shutting down task manager. Awaiting 5 seconds max for safe task exit...");
         try {
-            if(!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+            if(!executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 LOG.warning("Could not shut down task manager safely. Timeout exceded");
                 executor.shutdownNow();
             }
@@ -105,7 +105,9 @@ public class TaskManager implements Runnable {
                 ObjectInputStream ois = new ObjectInputStream(bis)) {
             int numberOfTasks = ois.readInt();
             for(int count = 0; count < numberOfTasks; count ++) {
-                addTask((ScheduledTask)ois.readObject());
+                ScheduledTask task = (ScheduledTask)ois.readObject();
+                task.recalculateRunTime(ois.readLong());
+                addTask(task);
                 count ++;
             }
             LOG.log(Level.INFO, "Task manager state loaded " + numberOfTasks + " tasks from " + STATE_FILE.getCanonicalPath());
@@ -124,6 +126,7 @@ public class TaskManager implements Runnable {
                     oos.writeInt(scheduledTasks.size());
                     for(ScheduledTask task : scheduledTasks) {
                         oos.writeObject(task);
+                        oos.writeLong(task.getTimeUntilNextRun());
                     }
                 }
         } catch(IOException e) {
