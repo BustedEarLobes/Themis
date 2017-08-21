@@ -23,6 +23,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     private long repeat;
     private long numberOfRuns;
     private AtomicBoolean isComplete;
+    private AtomicBoolean isInProgress;
     private transient long timeOfNextRun;
     private transient JDA jda;
     
@@ -39,7 +40,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     }
 
     protected boolean isExpired() {
-        return (numberOfRuns > repeat);
+        return ((numberOfRuns > repeat) && isComplete());
     }
     
     protected JDA getJDA() {
@@ -93,6 +94,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
 
     @Override
     public final void run() {
+        isInProgress.set(true);
         jda.addEventListener(this);
         try {
             runTask();
@@ -131,4 +133,8 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     }
 
     protected abstract void runTask();
+
+    public boolean isInProgress() {
+        return isInProgress.get();
+    }
 }
