@@ -33,10 +33,11 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         this.repeat = repeat;
         this.numberOfRuns = 0;
         this.isComplete = new AtomicBoolean(false);
+        this.isInProgress = new AtomicBoolean(false);
     }
 
     protected boolean taskIsReady() {
-        return (System.currentTimeMillis() >= timeOfNextRun);
+        return (System.currentTimeMillis() >= timeOfNextRun) && !isExpired();
     }
 
     protected boolean isExpired() {
@@ -111,6 +112,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
             jda.removeEventListener(this);
         }
         isComplete.set(true);
+        isInProgress.set(false);
     }
     
     public final void incrementRun() {
