@@ -1,9 +1,9 @@
 
 package com.github.bustedearlobes.themis.taskmanager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -33,10 +33,22 @@ public class ClearMessagesTask extends InstantTask {
     protected void runTask() {
         Guild guild = getGuildById(guildId);
         TextChannel targetChannel = getTextChannelById(targetChannelId, guild);
-        List<Message> messages = targetChannel.getIterableHistory().stream()
-            .filter(m -> m.getAuthor().getId().equals(targetUserId))
-            .limit(numberOfMessages)
-            .collect(Collectors.toList());
+        int count = 0;
+        TextChannel loggingChannel = getTextChannelById(loggingChannelId, guild);
+        List<Message> messages = new ArrayList<Message>();
+        for(Message m : targetChannel.getIterableHistory()) {
+            if(m.getAuthor().getId().equals(targetUserId)) {
+                messages.add(m);
+                if(messages.size() >= numberOfMessages) {
+                    break;
+                }
+            }
+            if(count >= 1000) {
+                loggingChannel.sendMessage("Clear limit reached after 1000 messages").complete();
+                LOG.info("Clear task stopped after searching 1000 messages");
+                break;
+            }
+        }
         if(messages.size() < 2) {
             if(messages.size() > 0) {
                 messages.get(0).delete().complete();
@@ -56,7 +68,6 @@ public class ClearMessagesTask extends InstantTask {
                 + targetChannel.getName()
                 + " in guild "
                 + guild.getName());
-        TextChannel loggingChannel = getTextChannelById(loggingChannelId, guild);
         loggingChannel.sendMessage("Cleared "
                 + messages.size()
                 + " "
