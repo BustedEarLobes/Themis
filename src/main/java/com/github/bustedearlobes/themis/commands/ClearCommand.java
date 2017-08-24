@@ -1,5 +1,6 @@
 package com.github.bustedearlobes.themis.commands;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import com.github.bustedearlobes.themis.Themis;
@@ -10,6 +11,8 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 public class ClearCommand extends Command {
+    private static final Logger LOG = Logger.getLogger("Themis");
+    
     private static final String REGEX = "^clear( @\\w+)+( #\\w+)+( (\\d+))*$";
     private static final int DEFAULT_CLEAR_NUMBER = 100;
     
@@ -32,6 +35,7 @@ public class ClearCommand extends Command {
                 numOfMessages,
                 message.getTextChannel());
         themis.getTaskManager().addTask(cmt);
+        LOG.info("Added clear message task.");
     }
     
     @Override
