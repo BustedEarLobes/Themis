@@ -29,9 +29,7 @@ public class UnmuteCommand extends Command {
                     message.getMentionedUsers(),
                     channel,
                     message.getTextChannel(),
-                    false,
-                    0,
-                    TimeUnit.SECONDS);
+                    false);
             themis.getTaskManager().addTask(unmuteTask);
         }
     }

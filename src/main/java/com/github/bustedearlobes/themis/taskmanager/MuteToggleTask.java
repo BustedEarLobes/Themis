@@ -3,6 +3,7 @@ package com.github.bustedearlobes.themis.taskmanager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.dv8tion.jda.core.Permission;
@@ -16,12 +17,14 @@ public class MuteToggleTask extends ScheduledTask {
     private static final long serialVersionUID = 1L;
     private static Logger LOG = Logger.getLogger("Themis");
     
-    List<String> targetUserIds = new ArrayList<String>();
+    private List<String> targetUserIds = new ArrayList<String>();
 
-    String targetGuildId;
-    String targetTextChannelId;
-    String targetLogChannelId;
-    boolean mute;
+    private String targetGuildId;
+    private String targetTextChannelId;
+    private String targetLogChannelId;
+    private boolean shouldMute;
+    private TimeUnit timeUnit = null;
+    private long time = 0;
     
     public MuteToggleTask(List<User> targets,
             TextChannel textChannel,
@@ -34,27 +37,49 @@ public class MuteToggleTask extends ScheduledTask {
         this.targetGuildId = textChannel.getGuild().getId();
         this.targetTextChannelId = textChannel.getId();
         this.targetLogChannelId = logChannel.getId();
-        this.mute = mute;
+        this.shouldMute = mute;
     }
     
+    /**
+     * This constructor is used to mute a player for a certain amount of time.
+     * @param targets
+     * @param textChannel
+     * @param logChannel
+     * @param mute
+     * @param time
+     * @param timeUnit
+     */
     public MuteToggleTask(List<User> targets,
             TextChannel textChannel,
             TextChannel logChannel,
             boolean mute,
             long time,
             TimeUnit timeUnit) {
-        super(time, 0, timeUnit, 0);
+        super(0, 0, TimeUnit.MICROSECONDS, 0);
         for(User user : targets) {
             targetUserIds.add(user.getId());
         }
         this.targetGuildId = textChannel.getGuild().getId();
         this.targetTextChannelId = textChannel.getId();
         this.targetLogChannelId = logChannel.getId();
-        this.mute = mute;
+        this.shouldMute = mute;
+        this.time = time;
+        timeUnit = this.timeUnit;
     }
 
     @Override
     protected void runTask() {
+        toggleMute(shouldMute);
+        if(timeUnit != null) {
+            try {
+                timeUnit.sleep(time);
+            } catch(InterruptedException e) {
+                LOG.log(Level.SEVERE, "Interrupted sleep", e);
+            }
+        }
+    }
+    
+    private void toggleMute(boolean mute) {
         Guild guild = getGuildById(targetGuildId);
         TextChannel channel = getTextChannelById(targetTextChannelId, guild);
         String[] userNames = new String[targetUserIds.size()];
@@ -92,6 +117,13 @@ public class MuteToggleTask extends ScheduledTask {
                 guild.getName()));
         TextChannel logChannel = getTextChannelById(targetLogChannelId, guild);
         logChannel.sendMessage(muteString + " " + userNamesFormated).complete();
+    }
+    
+    @Override
+    protected void cleanUpJDAChanges() {
+        if(timeUnit != null) {
+            toggleMute(!shouldMute);
+        }
     }
 
 }

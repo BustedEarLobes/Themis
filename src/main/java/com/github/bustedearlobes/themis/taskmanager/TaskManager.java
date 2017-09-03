@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -32,7 +31,7 @@ public class TaskManager implements Runnable {
     public TaskManager(JDA jda) {
         scheduledTasks = new LinkedList<>();
         this.jda = jda;
-        loadOldState();
+        cleanupSavedTasks();
         STATE_FILE.delete();
     }
     
@@ -41,12 +40,12 @@ public class TaskManager implements Runnable {
         synchronized(scheduledTasks) {
             scheduledTasks.add(task);
         }
-        saveState();
+        saveTasks();
     }
     
     public void addTaskBlocked(ScheduledTask task) throws InterruptedException {
         addTask(task);
-        while(!task.isComplete()) {
+        while(task.getState() != TaskState.DEAD) {
             Thread.sleep(100);
         }
     }
@@ -56,23 +55,32 @@ public class TaskManager implements Runnable {
         isRunning = new AtomicBoolean(true);
         while(isRunning.get()) {
             ScheduledTask task;
-            boolean stateChanged = false;
+            boolean taskClosed = false;
             synchronized(scheduledTasks) {
                 for(int i = 0; i < scheduledTasks.size(); i++) {
                     task = scheduledTasks.get(i);
-                    if(task.taskIsReady() && !task.isInProgress()) {
-                        executor.execute(task);
-                        task.incrementRun();
-                    }
-                    if(task.isExpired()) {
-                        stateChanged = true; 
-                        scheduledTasks.remove(i);
-                        i--;
+                    switch(task.getState()) {
+                        case QUEUED:
+                            if(task.taskIsReady()) {
+                                executor.execute(task);
+                                task.incrementRun();
+                            }
+                            break;
+                        case CLEANUP:
+                            task.cleanUpTask();
+                            break;
+                        case DEAD:
+                            taskClosed = true;
+                            scheduledTasks.remove(i);
+                            i --;
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
-            if(stateChanged) {
-                saveState();
+            if(taskClosed) {
+                saveTasks();
             }
             
             try {
@@ -96,29 +104,32 @@ public class TaskManager implements Runnable {
             LOG.log(Level.WARNING, "Could not shut down task manager safely. Interrupted Exception.", e);
         }
         LOG.log(Level.INFO, "Saving task manager state.");
-        saveState();
+        saveTasks();
     }
 
-    private void loadOldState() {
-        try(FileInputStream fis = new FileInputStream(STATE_FILE);
-                BufferedInputStream bis = new BufferedInputStream(fis);
-                ObjectInputStream ois = new ObjectInputStream(bis)) {
-            int numberOfTasks = ois.readInt();
-            for(int count = 0; count < numberOfTasks; count ++) {
-                ScheduledTask task = (ScheduledTask)ois.readObject();
-                task.recalculateRunTime(ois.readLong());
-                addTask(task);
-                count ++;
+    private void cleanupSavedTasks() {
+        if(STATE_FILE.exists()) {
+            try(FileInputStream fis = new FileInputStream(STATE_FILE);
+                    BufferedInputStream bis = new BufferedInputStream(fis);
+                    ObjectInputStream ois = new ObjectInputStream(bis)) {
+                int numberOfTasks = ois.readInt();
+                for(int count = 0; count < numberOfTasks; count ++) {
+                    ScheduledTask task = (ScheduledTask)ois.readObject();
+                    if(!task.isState(TaskState.DEAD)) {
+                        task.cleanUpTask();
+                        count ++;
+                    }
+                }
+                LOG.log(Level.INFO, "Task manager cleaned up " + numberOfTasks + " tasks from last shutdown");            
+            } catch(IOException | ClassNotFoundException e) {
+                LOG.log(Level.SEVERE, "Could not load older tasks to clean up.", e);
             }
-            LOG.log(Level.INFO, "Task manager state loaded " + numberOfTasks + " tasks from " + STATE_FILE.getCanonicalPath());
-        } catch(FileNotFoundException e) {
-            LOG.log(Level.INFO, "No state to load. State file does not exist.");
-        } catch(IOException | ClassNotFoundException e) {
-            LOG.log(Level.SEVERE, "Could not load task manager state.", e);
+        } else {
+            LOG.log(Level.INFO, "Task manager had no tasks to clean up. State file does not exist.");
         }
     }
     
-    private void saveState() {
+    private void saveTasks() {
         try(FileOutputStream fos = new FileOutputStream(STATE_FILE);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
                 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
@@ -130,7 +141,8 @@ public class TaskManager implements Runnable {
                     }
                 }
         } catch(IOException e) {
-            LOG.log(Level.SEVERE, "Could not save task manager state. Scheduled tasks not saved on shutdown!", e);
+            LOG.log(Level.SEVERE, "Could not save task manager tasks. Scheduled tasks will not "
+                    + "be cleaned up on unexpected shutdown!", e);
         }
     }
 }

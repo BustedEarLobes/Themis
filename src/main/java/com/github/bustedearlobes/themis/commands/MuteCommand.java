@@ -25,11 +25,6 @@ public class MuteCommand extends Command {
             if(message.getMentionedChannels().size() > 0) {
                 channel = message.getMentionedChannels().get(0);
             }
-            MuteToggleTask muteTask = new MuteToggleTask(message.getMentionedUsers(),
-                    channel,
-                    message.getTextChannel(),
-                    true);
-            themis.getTaskManager().addTask(muteTask);
             if(parsedCommand.group(4) != null) {
                 TimeUnit timeUnit = parseTimeUnit(parsedCommand.group(6));
                 long time = Integer.parseInt(parsedCommand.group(5));
@@ -37,10 +32,16 @@ public class MuteCommand extends Command {
                         message.getMentionedUsers(),
                         channel,
                         message.getTextChannel(),
-                        false,
+                        true,
                         time,
                         timeUnit);
                 themis.getTaskManager().addTask(unmuteTask);
+            } else {
+                MuteToggleTask muteTask = new MuteToggleTask(message.getMentionedUsers(),
+                        channel,
+                        message.getTextChannel(),
+                        true);
+                themis.getTaskManager().addTask(muteTask);
             }
         }
     }
