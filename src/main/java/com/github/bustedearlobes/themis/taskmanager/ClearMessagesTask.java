@@ -77,4 +77,9 @@ public class ClearMessagesTask extends InstantTask {
         
     }
 
+    @Override
+    public String getName() {
+        return "ClearMessagesTask";
+    }
+
 }

@@ -11,7 +11,7 @@ import java.util.logging.LogRecord;
  * This class is used to format the log entries.
  */
 public class ThemisLogFormatter extends Formatter {
-	private static final DateFormat df = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss");
+	private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
 	
 	@Override
 	public String format(LogRecord record) {

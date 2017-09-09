@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -23,9 +25,9 @@ public class TaskManager implements Runnable {
     private static final Logger LOG = Logger.getLogger("Themis");
     private static final File STATE_FILE = new File("themis_state.dat");
     
+    private ExecutorService executor = Executors.newCachedThreadPool();
     private List<ScheduledTask> scheduledTasks;
     private AtomicBoolean isRunning;
-    private ExecutorService executor = Executors.newCachedThreadPool();
     private JDA jda;
     
     public TaskManager(JDA jda) {
@@ -106,6 +108,24 @@ public class TaskManager implements Runnable {
         LOG.log(Level.INFO, "Saving task manager state.");
         saveTasks();
     }
+    
+    public List<ScheduledTask> getTasks() {
+        synchronized(scheduledTasks) {
+            return Collections.unmodifiableList(scheduledTasks);
+        }
+    }
+    
+    public List<ScheduledTask> getTasksByName(String name) {
+        List<ScheduledTask> resultList = new ArrayList<ScheduledTask>();
+        synchronized(scheduledTasks) {
+            for(ScheduledTask task : scheduledTasks) {
+                if(task.getName().equals(name)) {
+                    resultList.add(task);
+                }
+            }
+        }
+        return resultList;
+    }
 
     private void cleanupSavedTasks() {
         if(STATE_FILE.exists()) {
@@ -116,8 +136,10 @@ public class TaskManager implements Runnable {
                 for(int count = 0; count < numberOfTasks; count ++) {
                     ScheduledTask task = (ScheduledTask)ois.readObject();
                     if(!task.isState(TaskState.DEAD)) {
-                        task.cleanUpTask();
-                        count ++;
+                        task.setJDA(jda);
+                        if(task.cleanUpTask()) {
+                            count ++;
+                        }
                     }
                 }
                 LOG.log(Level.INFO, "Task manager cleaned up " + numberOfTasks + " tasks from last shutdown");            

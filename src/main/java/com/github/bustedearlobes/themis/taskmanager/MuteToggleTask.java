@@ -1,6 +1,7 @@
 package com.github.bustedearlobes.themis.taskmanager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -64,7 +65,7 @@ public class MuteToggleTask extends ScheduledTask {
         this.targetLogChannelId = logChannel.getId();
         this.shouldMute = mute;
         this.time = time;
-        timeUnit = this.timeUnit;
+        this.timeUnit = timeUnit;
     }
 
     @Override
@@ -82,21 +83,30 @@ public class MuteToggleTask extends ScheduledTask {
     private void toggleMute(boolean mute) {
         Guild guild = getGuildById(targetGuildId);
         TextChannel channel = getTextChannelById(targetTextChannelId, guild);
-        String[] userNames = new String[targetUserIds.size()];
-        
-        for(int i = 0; i < targetUserIds.size(); i ++) {
-            String userId = targetUserIds.get(i);
-            Member member = getMemberById(userId, guild);
-            PermissionOverride po = channel.getPermissionOverride(member);
-            if(po == null) {
-                po = channel.createPermissionOverride(member).complete();
+        String[] userNames;
+        synchronized(targetUserIds) {
+            /*
+             * Do not attempt to mute or log muting if there are no targets.
+             */
+            if(targetUserIds.size() <= 0) {
+                return;
             }
-            if(mute) {
-                po.getManager().deny(Permission.MESSAGE_WRITE).complete();
-            } else {
-                po.getManager().clear(Permission.MESSAGE_WRITE).complete();
+            
+            userNames = new String[targetUserIds.size()];
+            for(int i = 0; i < targetUserIds.size(); i ++) {
+                String userId = targetUserIds.get(i);
+                Member member = getMemberById(userId, guild);
+                PermissionOverride po = channel.getPermissionOverride(member);
+                if(po == null) {
+                    po = channel.createPermissionOverride(member).complete();
+                }
+                if(mute) {
+                    po.getManager().deny(Permission.MESSAGE_WRITE).complete();
+                } else {
+                    po.getManager().clear(Permission.MESSAGE_WRITE).complete();
+                }
+                userNames[i] = member.getUser().getName();
             }
-            userNames[i] = member.getUser().getName();
         }
         
         String userNamesFormated = "";
@@ -119,11 +129,28 @@ public class MuteToggleTask extends ScheduledTask {
         logChannel.sendMessage(muteString + " " + userNamesFormated).complete();
     }
     
+    public List<String> getTargetUsers() {
+        synchronized(targetUserIds) {
+            return Collections.unmodifiableList(targetUserIds);
+        }
+    }
+    
+    public void removeTargetUser(String targetUserId) {
+        synchronized(targetUserIds) {
+            targetUserIds.remove(targetUserId);
+        }
+    }
+    
     @Override
     protected void cleanUpJDAChanges() {
         if(timeUnit != null) {
             toggleMute(!shouldMute);
         }
+    }
+
+    @Override
+    public String getName() {
+        return "MuteToggleTask";
     }
 
 }

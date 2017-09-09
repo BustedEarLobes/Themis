@@ -17,12 +17,10 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 public abstract class ScheduledTask extends ListenerAdapter implements Runnable, Serializable {
     private static final long serialVersionUID = 2L;
     private static final Logger LOG = Logger.getLogger("Themis");
-
-    private final String NAME = this.getClass().getName();;
     
+    private long numberOfRuns = 0;
     private long periodicity;
     private long repeat;
-    private long numberOfRuns = 0;
     private TaskState state;
     
     private transient long timeOfNextRun;
@@ -33,7 +31,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         this.periodicity = timeUnit.toMillis(periodicity);
         this.timeOfNextRun = System.currentTimeMillis() + timeUnit.toMillis(delay);
         this.repeat = repeat;
-        setState(TaskState.QUEUED);
+        state = TaskState.QUEUED;
     }
 
     @Override
@@ -53,17 +51,12 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
             }
         } finally {
             jda.removeEventListener(this);
-            this.cleanUpTask();
         }
-        if(hasMoreRuns()) {
+        if(!completedAllRuns()) {
             setState(TaskState.QUEUED);
         } else {
             setState(TaskState.CLEANUP);
         }
-    }
-    
-    public final boolean isSameTaskType(ScheduledTask task) {
-        return (this.NAME == task.NAME);
     }
     
     public boolean isState(TaskState state) {
@@ -78,9 +71,16 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         }
     }
     
-    protected void cleanUpTask() {
-        cleanUpJDAChanges();
+    protected boolean cleanUpTask() {
+        boolean success = false;
+        try {
+            cleanUpJDAChanges();
+            success = true;
+        } catch(Exception e) {
+            LOG.log(Level.SEVERE, "Error while cleaning up task.", e);
+        }
         setState(TaskState.DEAD);
+        return success;
     }
     
     protected final long getTimeUntilNextRun() {
@@ -98,7 +98,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         return (System.currentTimeMillis() >= timeOfNextRun);
     }
 
-    protected final boolean hasMoreRuns() {
+    protected final boolean completedAllRuns() {
         return (numberOfRuns > repeat);
     }
     
@@ -153,12 +153,13 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     
     protected void cleanUpJDAChanges() { }
     
-    protected abstract void runTask();
     
     private void setState(TaskState state) {
         synchronized(this.state) {
             this.state = state;
         }
     }
-
+    
+    public abstract String getName();
+    protected abstract void runTask();
 }

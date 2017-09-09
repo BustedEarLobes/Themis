@@ -1,10 +1,13 @@
 package com.github.bustedearlobes.themis.commands;
 
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import com.github.bustedearlobes.themis.Themis;
 import com.github.bustedearlobes.themis.taskmanager.MuteToggleTask;
+import com.github.bustedearlobes.themis.taskmanager.ScheduledTask;
+import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Message;
@@ -30,7 +33,28 @@ public class UnmuteCommand extends Command {
                     channel,
                     message.getTextChannel(),
                     false);
+            purgeConflictingMuteTasks(unmuteTask, themis.getTaskManager());
             themis.getTaskManager().addTask(unmuteTask);
+        }
+    }
+    
+    private void purgeConflictingMuteTasks(MuteToggleTask muteTask, TaskManager taskManager) {
+        for(ScheduledTask task : taskManager.getTasksByName(muteTask.getName())) {
+            MuteToggleTask otherMuteTask = (MuteToggleTask) task;
+            if(otherMuteTask != muteTask) {
+                List<String> toRemove = new ArrayList<>();
+                for(String otherTargetId : otherMuteTask.getTargetUsers()) {
+                    for(String targetId : muteTask.getTargetUsers()) {
+                        if(targetId.equals(otherTargetId)) {
+                            toRemove.add(otherTargetId);
+                        }
+                    }
+                }
+                
+                for(String remove : toRemove) {
+                    otherMuteTask.removeTargetUser(remove);
+                }
+            }
         }
     }
     
