@@ -8,7 +8,7 @@ import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Message;
 
 public class HelpCommand extends Command {
-    private static final String REGEX = "^help( (\\w+)){0,1}$";
+    private static final String REGEX = "^help( (\\w+))?$";
     
     public HelpCommand() {
         super("help", REGEX);

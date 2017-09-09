@@ -15,7 +15,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 public class MuteCommand extends Command {
-    private static final String REGEX = "^(mute)( @\\w+)+( #\\w+){0,1}( (\\d+)(s|m|h|d)){0,1}$";
+    private static final String REGEX = "^(mute)( @\\w+)+( #\\w+)?( (\\d+)(s|m|h|d))?$";
     
     
     public MuteCommand() {

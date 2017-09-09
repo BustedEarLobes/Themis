@@ -13,7 +13,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public class ClearCommand extends Command {
     private static final Logger LOG = Logger.getLogger("Themis");
     
-    private static final String REGEX = "^clear( @\\w+)+( #\\w+){0,1}( (\\d+))*$";
+    private static final String REGEX = "^clear( @\\w+)+( #\\w+)?( (\\d+))*$";
     private static final int DEFAULT_CLEAR_NUMBER = 100;
     
     public ClearCommand() {

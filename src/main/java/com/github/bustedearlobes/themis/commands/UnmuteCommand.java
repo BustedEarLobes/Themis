@@ -14,7 +14,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 public class UnmuteCommand extends Command {
-    private static final String REGEX = "^(unmute)( @\\w+)+( #\\w+){0,1}$";
+    private static final String REGEX = "^(unmute)( @\\w+)+( #\\w+)?$";
     
     
     public UnmuteCommand() {

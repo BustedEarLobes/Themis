@@ -13,9 +13,11 @@ import java.util.logging.Logger;
 import com.github.bustedearlobes.themis.commands.ClearCommand;
 import com.github.bustedearlobes.themis.commands.CommandListener;
 import com.github.bustedearlobes.themis.commands.HelpCommand;
+import com.github.bustedearlobes.themis.commands.MusicCommand;
 import com.github.bustedearlobes.themis.commands.MuteCommand;
 import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
+import com.github.bustedearlobes.themis.music.GlobalMusicManager;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 import com.github.bustedearlobes.themis.util.ThemisLogFormatter;
 
@@ -28,6 +30,7 @@ public class Themis {
     private JDA jda;
     private TaskManager taskManager;
     private CommandListener commandListener;
+    private GlobalMusicManager musicManager;
     private String themisOwner;
 
     public Themis() {
@@ -35,6 +38,7 @@ public class Themis {
         initJDA();
         initCommandListener();
         initTaskManager();
+        initMusicManager();
     }
 
     public Themis(File apiKey) {
@@ -42,6 +46,7 @@ public class Themis {
         initJDA(apiKey);
         initCommandListener();
         initTaskManager();
+        initMusicManager();
     }
 
     /**
@@ -109,6 +114,7 @@ public class Themis {
         commandListener.register(new ShutdownCommand());
         commandListener.register(new HelpCommand());
         commandListener.register(new ClearCommand());
+        commandListener.register(new MusicCommand());
     }
     
     /**
@@ -116,6 +122,13 @@ public class Themis {
      */
     private void initTaskManager() {
         taskManager = new TaskManager(jda);
+    }
+    
+    /**
+     * Initializes the global music manager
+     */
+    private void initMusicManager() {
+        musicManager = new GlobalMusicManager();
     }
 
     /**
@@ -146,6 +159,19 @@ public class Themis {
      */
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+    
+    public GlobalMusicManager getGlobalMusicManager() {
+        return musicManager;
+    }
+
+    /**
+     * Gets the JDA instance.
+     * 
+     * @return The JDA instance for themis.
+     */
+    public JDA getJDA() {
+        return jda;
     }
     
     /**
