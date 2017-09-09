@@ -31,13 +31,28 @@ public class CommandListener extends ListenerAdapter {
     
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
-        if(event.getMember().isOwner()) {
-            String messageContent = event.getMessage().getContent();
-            if(messageContent.trim().startsWith(COMMAND_BASE)) {
-                messageContent = messageContent.trim().replaceFirst(COMMAND_BASE, "");
-                String commandName = messageContent.trim().split(" ")[0];
-                for(Command command: commands) {
-                    if(commandName.equals(command.getCommandName())) {
+        String messageContent = event.getMessage().getContent();
+        if(messageContent.trim().startsWith(COMMAND_BASE)) {
+            messageContent = messageContent.trim().replaceFirst(COMMAND_BASE, "");
+            String commandName = messageContent.trim().split(" ")[0];
+            for(Command command: commands) {
+                if(commandName.equals(command.getCommandName())) {
+                    if(command.requiresOwner() && event.getMember().isOwner()) {
+                        if(command.validateCall(messageContent)) {
+                            try {
+                                command.onCall(command.parseCommand(messageContent),
+                                        event.getMessage(),
+                                        event.getJDA(),
+                                        themis);
+                            } catch(Exception e) {
+                                LOG.log(Level.WARNING,
+                                        "There was an error while executing a command.",
+                                        e);
+                            }
+                        } else {
+                            command.printUsage(event.getMessage().getTextChannel());
+                        }
+                    } else if(!command.requiresOwner()) {
                         if(command.validateCall(messageContent)) {
                             try {
                                 command.onCall(command.parseCommand(messageContent),

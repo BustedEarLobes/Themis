@@ -12,9 +12,11 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public abstract class Command {
     private Pattern pattern;
     private String commandName;
+    private boolean requiresOwner;
     
-    public Command(String commandName, String regexValidation) {
+    public Command(String commandName, String regexValidation, boolean requiresOwner) {
         pattern = Pattern.compile(regexValidation);
+        this.requiresOwner = requiresOwner;
         this.commandName = commandName;
     }
     
@@ -67,6 +69,10 @@ public abstract class Command {
     
     public void printUsage(TextChannel textChannel) {
         textChannel.sendMessage("Usage:\n\n" + getFullCommandManual().toString()).complete();
+    }
+    
+    public boolean requiresOwner() {
+        return requiresOwner;
     }
     
     protected abstract void onCall(Matcher fullCommand, Message message, JDA jda, Themis themis);

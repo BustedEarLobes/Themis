@@ -11,7 +11,7 @@ public class HelpCommand extends Command {
     private static final String REGEX = "^help( (\\w+))?$";
     
     public HelpCommand() {
-        super("help", REGEX);
+        super("help", REGEX, false);
     }
 
     @Override
@@ -28,6 +28,28 @@ public class HelpCommand extends Command {
                 sb.append("Commands:\n\n");
                 for(Command command : themis.getCommandListener().getCommands()) {
                     sb.append(command.getCommandManual()).append("\n");
+                }
+                String outString = sb.toString();
+                while(outString.length() >= 2000) {
+                    message.getTextChannel().sendMessage(outString.substring(0, 2000)).complete();
+                    outString = outString.substring(1999);
+                }
+                message.getTextChannel().sendMessage(sb.toString()).complete();
+            }
+        } else {
+            if(fullCommand.group(1) != null) {
+                for(Command command : themis.getCommandListener().getCommands()) {
+                    if(command.getCommandName().equals(fullCommand.group(2)) && !command.requiresOwner()) {
+                        command.printUsage(message.getTextChannel());
+                    }
+                }
+            } else {
+                StringBuilder sb = new StringBuilder(4000);
+                sb.append("Commands:\n\n");
+                for(Command command : themis.getCommandListener().getCommands()) {
+                    if(!command.requiresOwner()) {
+                        sb.append(command.getCommandManual()).append("\n");
+                    }
                 }
                 String outString = sb.toString();
                 while(outString.length() >= 2000) {

@@ -19,7 +19,7 @@ public class MuteCommand extends Command {
     
     
     public MuteCommand() {
-        super("mute", REGEX);
+        super("mute", REGEX, true);
     }
 
     @Override

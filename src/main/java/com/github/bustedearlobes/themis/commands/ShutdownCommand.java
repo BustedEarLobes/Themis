@@ -13,7 +13,7 @@ public class ShutdownCommand extends Command {
     private static final String REGEX = "^shutdown$";
     
     public ShutdownCommand() {
-        super("shutdown", REGEX);
+        super("shutdown", REGEX, true);
     }
 
     @Override

@@ -26,7 +26,7 @@ public class MusicCommand extends Command {
     private static final int CAPTURE_GROUP_SKIP = 3;
     
     public MusicCommand() {
-        super("music", REGEX);
+        super("music", REGEX, false);
     }
 
     @Override

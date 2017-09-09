@@ -17,7 +17,7 @@ public class ClearCommand extends Command {
     private static final int DEFAULT_CLEAR_NUMBER = 100;
     
     public ClearCommand() {
-        super("clear", REGEX);
+        super("clear", REGEX, true);
     }
 
     @Override

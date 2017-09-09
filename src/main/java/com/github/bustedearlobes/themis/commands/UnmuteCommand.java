@@ -18,7 +18,7 @@ public class UnmuteCommand extends Command {
     
     
     public UnmuteCommand() {
-        super("unmute", REGEX);
+        super("unmute", REGEX, true);
     }
 
     @Override
