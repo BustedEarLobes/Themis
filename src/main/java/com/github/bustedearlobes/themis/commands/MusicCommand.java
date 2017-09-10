@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 
 import com.github.bustedearlobes.themis.Themis;
 import com.github.bustedearlobes.themis.music.GuildMusicManager;
+import com.github.bustedearlobes.themis.taskmanager.MusicInactivityTask;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -21,8 +22,9 @@ import net.dv8tion.jda.core.managers.AudioManager;
 public class MusicCommand extends Command {
     private static final Logger LOG = Logger.getLogger("Themis");
     
-    private static final String REGEX = "^music (play|stop|list|skip( (\\d+))?|clear|queue( (.*)))$";
-    private static final int CAPTURE_GROUP_QUEUE = 5;
+    private static final String REGEX = "^music (play|stop|pause|list|skip( (\\d+))?|clear|queue (.*)|ytsearch (.*))$";
+    private static final int CAPTURE_GROUP_QUEUE = 4;
+    private static final int CAPTURE_GROUP_YTSEARCH = 5;
     private static final int CAPTURE_GROUP_SKIP = 3;
     
     public MusicCommand() {
@@ -37,6 +39,9 @@ public class MusicCommand extends Command {
             break;
         case "stop":
             stop(message, jda, themis);
+            break;            
+        case "pause":
+            pause(message, jda, themis);
             break;
         case "list":
             list(message, jda, themis);
@@ -50,24 +55,32 @@ public class MusicCommand extends Command {
         case "queue":
             queue(fullCommand, message, jda, themis);
             break;
+        case "ytsearch":
+            youTubeSearch(fullCommand, message, jda, themis);
+            break;
         default:
-            throw new RuntimeException("Unexpected music subcommand");
+            throw new RuntimeException("Unexpected music subcommand: " + fullCommand.group(1).split(" ")[0]);
         }
     }
 
     private void play(Message message, JDA jda, Themis themis) {
         Guild guild = message.getGuild();
         AudioManager audioManager = guild.getAudioManager();
+        GuildMusicManager musicManager = themis.getGlobalMusicManager().getGuildMusicManager(guild);
         if(!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
             if(message.getMember().getVoiceState().inVoiceChannel()) {
                 audioManager.openAudioConnection(message.getMember().getVoiceState().getChannel());
                 message.getTextChannel().sendMessage("Starting music bot").complete();
                 LOG.info("Starting music bot in guild " + guild.getName());
+                themis.getTaskManager().addTask(new MusicInactivityTask(guild.getId()));
             } else {
                 message.getChannel().sendMessage("You are not in a voice channel").complete();
             }
         } else {
-            message.getChannel().sendMessage("Themis is already in voice channel!").complete();
+            if(musicManager.getAudioPlayer().isPaused()) {
+                musicManager.getAudioPlayer().setPaused(false);
+                message.getChannel().sendMessage("Resumed playing").complete();
+            }
         }
     }
     
@@ -86,6 +99,13 @@ public class MusicCommand extends Command {
         }        
     }
     
+    private void pause(Message message, JDA jda, Themis themis) {
+        Guild guild = message.getGuild();
+        GuildMusicManager musicManager = themis.getGlobalMusicManager().getGuildMusicManager(guild);
+        musicManager.getAudioPlayer().setPaused(true);
+        message.getChannel().sendMessage("Music paused. Play to resume").complete();
+    }
+        
     private void list(Message message, JDA jda, Themis themis) {
         Guild guild = message.getGuild();
         GuildMusicManager musicManager = themis.getGlobalMusicManager().getGuildMusicManager(guild);
@@ -124,22 +144,31 @@ public class MusicCommand extends Command {
         playerManager.loadItemOrdered(musicManager, command.group(CAPTURE_GROUP_QUEUE), new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                logChannel.sendMessage("Added " + track.getIdentifier() + " to the queue").complete();
                 musicManager.getTrackScheduler().queue(track);
+                logChannel.sendMessage(message.getAuthor().getName()
+                        + " added *" 
+                        + track.getInfo().title
+                        +"* by "
+                        + track.getInfo().author
+                        + " to the queue").complete();
                 LOG.info("Added " + track.getIdentifier() + " to the queue in guild " + guild.getName());
             }
             
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                logChannel.sendMessage("Added " + playlist.getName() + " playlist with "
-                        +playlist.getTracks().size() + " songs to the queue").complete();
                 for(AudioTrack track : playlist.getTracks()) {
                     musicManager.getTrackScheduler().queue(track);
                 }
+                logChannel.sendMessage(message.getAuthor().getName()
+                        + " added "
+                        + playlist.getName()
+                        + " playlist with "
+                        + playlist.getTracks().size() + " songs to the queue").complete();
                 LOG.info("Added playlist " + playlist.getName()
                         + " with " + playlist.getTracks().size()
                         + " songs to the queue in guild "
                         + guild.getName());
+
             }
             
             @Override
@@ -154,23 +183,71 @@ public class MusicCommand extends Command {
             }
         });
         
+        message.delete().complete();
+    }
+    
+    private void youTubeSearch(Matcher command, Message message, JDA jda, Themis themis) {
+        Guild guild = message.getGuild();
+        GuildMusicManager musicManager = themis.getGlobalMusicManager().getGuildMusicManager(guild);
+        AudioPlayerManager playerManager = themis.getGlobalMusicManager().getAudioPlayerManager();
+        TextChannel logChannel = message.getTextChannel();
+        playerManager.loadItemOrdered(musicManager, "ytsearch: " + command.group(CAPTURE_GROUP_YTSEARCH), new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                musicManager.getTrackScheduler().queue(track);
+                logChannel.sendMessage(message.getAuthor().getName()
+                        + " added *" 
+                        + track.getInfo().title
+                        +"* by "
+                        + track.getInfo().author
+                        + " to the queue").complete();
+                LOG.info("Added " + track.getIdentifier() + " to the queue in guild " + guild.getName());
+            }
+            
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                musicManager.getTrackScheduler().queue(playlist.getTracks().get(0));
+                logChannel.sendMessage(message.getAuthor().getName()
+                        + " added *" 
+                        + playlist.getTracks().get(0).getInfo().title
+                        +"* by "
+                        + playlist.getTracks().get(0).getInfo().author
+                        + " to the queue").complete();
+                LOG.info("Added " + playlist.getTracks().get(0).getIdentifier() + " to the queue in guild " + guild.getName());
+            }
+            
+            @Override
+            public void noMatches() {
+                logChannel.sendMessage("No song matched " + command.group(CAPTURE_GROUP_YTSEARCH)).complete();
+            }
+            
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                logChannel.sendMessage("Could not load song at " + command.group(CAPTURE_GROUP_YTSEARCH)).complete();
+                LOG.log(Level.WARNING, "Failed to load song in guild " + guild.getName(), exception);
+            }
+        });
+        
+        message.delete().complete();
     }
 
     @Override
     public String getDiscription() {
         return "Command used to configure the music bot. \n"
-             + "  **• play:** Starts up the music bot on the voice channel the user is currently in.\n"
+             + "  **• play:** Starts up the music bot on the voice channel the user is currently in. Resumes if paused.\n"
              + "  **• stop:** Stops the music bot. Leaves the voice channel.\n"
+             + "  **• pause:** Pauses the music bot. Play to resume.\n"
              + "  **• list:** Lists the current songs in the queue.\n"
-             + "  **• skip:** Skips to the next song in the queue.\n"
+             + "  **• skip:** Skips to the next song in the queue. Can skip multiple tracks.\n"
              + "  **• clear:** Clears the queue of all songs.\n"
-             + "  **• queue:** Queues a song given the URL.";
+             + "  **• queue:** Queues a song given the URL.\n"
+             + "  **• ytsearch:** Searches for a song on youtube given a query";
                 
     }
     
     @Override
     public String getHumanReadablePattern() {
-        return "play | stop | list | skip | clear | queue URL";
+        return "play | stop | pause | list | skip <number> | clear | queue URL | ytsearch <query>";
     }
 
     @Override

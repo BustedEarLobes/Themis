@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.bustedearlobes.themis.Themis;
 import com.github.bustedearlobes.themis.exceptions.EntityNotFoundException;
 
 import net.dv8tion.jda.core.JDA;
@@ -24,7 +25,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     private TaskState state;
     
     private transient long timeOfNextRun;
-    private transient JDA jda;
+    private transient Themis themis;
 
     
     public ScheduledTask(long delay, long periodicity, TimeUnit timeUnit, long repeat) {
@@ -37,7 +38,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     @Override
     public final void run() {
         setState(TaskState.RUNNING);
-        jda.addEventListener(this);
+        getJDA().addEventListener(this);
         try {
             runTask();
         } catch(Exception e) {
@@ -50,7 +51,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
                 LOG.log(Level.WARNING, "Exception occured in scheduled task.", e);
             }
         } finally {
-            jda.removeEventListener(this);
+            getJDA().removeEventListener(this);
         }
         if(!completedAllRuns()) {
             setState(TaskState.QUEUED);
@@ -103,14 +104,21 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     }
     
     protected final JDA getJDA() {
-        if(jda == null) {
-            LOG.log(Level.SEVERE, "JDA not set in task");
+        if(themis == null || themis.getJDA() == null) {
+            LOG.log(Level.SEVERE, "Themis or JDA are null in task. Cannot get JDA.");
         }
-        return jda;
+        return themis.getJDA();
     }
     
-    protected final void setJDA(JDA jda) {
-        this.jda = jda;
+    protected final Themis getThemis() {
+        if(themis == null) {
+            LOG.log(Level.SEVERE, "Themis not set in task");
+        }
+        return themis;
+    }
+    
+    protected final void setThemis(Themis themis) {
+        this.themis = themis;
     }
     
     protected final Guild getGuildById(String guildId) {
@@ -144,7 +152,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     }
     
     protected final User getUserById(String userId) {
-        User user = jda.getUserById(userId);
+        User user = getJDA().getUserById(userId);
         if(user == null) {
             throw new EntityNotFoundException("Could not find user from id " + userId);
         }

@@ -32,16 +32,8 @@ public class Themis {
     private CommandListener commandListener;
     private GlobalMusicManager musicManager;
     private String themisOwner;
-
-    public Themis() {
-        initLogger();
-        initJDA();
-        initCommandListener();
-        initTaskManager();
-        initMusicManager();
-    }
-
-    public Themis(File apiKey) {
+    
+    private void init(File apiKey) {
         initLogger();
         initJDA(apiKey);
         initCommandListener();
@@ -69,13 +61,6 @@ public class Themis {
             System.err.println("CRITICAL: Failed to load log file for writting. Shutting down");
             System.exit(1);
         }
-    }
-
-    /**
-     * Initializes JDA with default api-key file.
-     */
-    private void initJDA() {
-        initJDA(new File("API_KEY.dat"));
     }
 
     /**
@@ -121,7 +106,7 @@ public class Themis {
      * Initializes the task manager
      */
     private void initTaskManager() {
-        taskManager = new TaskManager(jda);
+        taskManager = new TaskManager(this);
     }
     
     /**
@@ -131,10 +116,15 @@ public class Themis {
         musicManager = new GlobalMusicManager();
     }
 
+    public void start() {
+        start(new File("API_KEY.dat"));
+    }
+    
     /**
      * Starts up Themis.
      */
-    public void start() {
+    public void start(File apiKey) {
+        init(apiKey);
         new Thread(taskManager, "TaskManager").start();
         logger.info("Themis started succesfully!");
     }
@@ -186,13 +176,12 @@ public class Themis {
      * @param args
      */
     public static void main(String[] args) {
-        Themis themis;
+        Themis themis = new Themis();
         if(args.length == 1) {
-            themis = new Themis(new File(args[0]));
+            themis.start(new File(args[0]));
         } else {
-            themis = new Themis();
+            themis.start();
         }
-        themis.start();
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
             themis.shutdown();
         }));

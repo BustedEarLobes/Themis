@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.dv8tion.jda.core.JDA;
+import com.github.bustedearlobes.themis.Themis;
 
 public class TaskManager implements Runnable {
     private static final Logger LOG = Logger.getLogger("Themis");
@@ -28,17 +28,17 @@ public class TaskManager implements Runnable {
     private ExecutorService executor = Executors.newCachedThreadPool();
     private List<ScheduledTask> scheduledTasks;
     private AtomicBoolean isRunning;
-    private JDA jda;
+    private Themis themis;
     
-    public TaskManager(JDA jda) {
+    public TaskManager(Themis themis) {
         scheduledTasks = new LinkedList<>();
-        this.jda = jda;
+        this.themis = themis;
         cleanupSavedTasks();
         STATE_FILE.delete();
     }
     
     public void addTask(ScheduledTask task) {
-        task.setJDA(jda);
+        task.setThemis(themis);
         synchronized(scheduledTasks) {
             scheduledTasks.add(task);
         }
@@ -136,7 +136,7 @@ public class TaskManager implements Runnable {
                 for(int count = 0; count < numberOfTasks; count ++) {
                     ScheduledTask task = (ScheduledTask)ois.readObject();
                     if(!task.isState(TaskState.DEAD)) {
-                        task.setJDA(jda);
+                        task.setThemis(themis);
                         if(task.cleanUpTask()) {
                             count ++;
                         }
