@@ -3,9 +3,6 @@ package com.github.bustedearlobes.themis.music;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sedmelluq.discord.lavaplayer.format.AudioDataFormat;
-import com.sedmelluq.discord.lavaplayer.format.AudioDataFormat.Codec;
-import com.sedmelluq.discord.lavaplayer.natives.opus.OpusEncoder;
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration.ResamplingQuality;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
