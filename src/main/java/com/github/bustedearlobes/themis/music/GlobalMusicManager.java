@@ -24,9 +24,8 @@ public class GlobalMusicManager {
         playerManager.registerSourceManager(new SoundCloudAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
-        playerManager.setFrameBufferDuration(100);
-        playerManager.getConfiguration().setResamplingQuality(ResamplingQuality.LOW);
-        playerManager.getConfiguration().setOpusEncodingQuality(1);
+        playerManager.setFrameBufferDuration(50000);
+        
         AudioSourceManagers.registerLocalSource(playerManager);
         AudioSourceManagers.registerRemoteSources(playerManager);
     }
