@@ -5,10 +5,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Scanner;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.commands.ClearCommand;
 import com.github.bustedearlobes.themis.commands.CommandListener;
@@ -19,14 +18,13 @@ import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
 import com.github.bustedearlobes.themis.music.GlobalMusicManager;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
-import com.github.bustedearlobes.themis.util.ThemisLogFormatter;
 
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 
 public class Themis {
-    private static Logger logger;
+    private final static Logger LOG = LoggerFactory.getLogger(Themis.class);
     private JDA jda;
     private TaskManager taskManager;
     private CommandListener commandListener;
@@ -34,33 +32,10 @@ public class Themis {
     private String themisOwner;
     
     private void init(File apiKey) {
-        initLogger();
         initJDA(apiKey);
         initCommandListener();
         initTaskManager();
         initMusicManager();
-    }
-
-    /**
-     * Initializes the logger and configures it to log to an output log file.
-     */
-    private void initLogger() {
-        logger = Logger.getLogger("Themis");
-        logger.setUseParentHandlers(false);
-
-        try {
-            // This block configure the logger with handler and formatter
-            FileHandler fh = new FileHandler("themis.log", 10000000, 1, true);
-            ConsoleHandler ch = new ConsoleHandler();
-            logger.addHandler(fh);
-            logger.addHandler(ch);
-            ThemisLogFormatter formatter = new ThemisLogFormatter();
-            fh.setFormatter(formatter);
-            ch.setFormatter(formatter);
-        } catch(SecurityException | IOException e) {
-            System.err.println("CRITICAL: Failed to load log file for writting. Shutting down");
-            System.exit(1);
-        }
     }
 
     /**
@@ -76,13 +51,12 @@ public class Themis {
             String key = scanner.nextLine().trim();
             themisOwner = scanner.nextLine().trim();
             jda = new JDABuilder(AccountType.BOT).setToken(key).buildBlocking();
-            logger.info("JDA session succesfully started.");
+            LOG.info("JDA session successfully started.");
         } catch(IOException e) {
-            logger.log(Level.SEVERE,
-                    String.format("Could not find or open api key file %s. JDA could not be created", apiKey), e);
+            LOG.error("Could not find or open api key file {}. JDA could not be created", apiKey, e);
             System.exit(1);
         } catch(Exception e) {
-            logger.log(Level.SEVERE, "Error building JDA.", e);
+            LOG.error("Error building JDA.", e);
             System.exit(1);
         }
     }
@@ -126,16 +100,16 @@ public class Themis {
     public void start(File apiKey) {
         init(apiKey);
         new Thread(taskManager, "TaskManager").start();
-        logger.info("Themis started succesfully!");
+        LOG.info("Themis started successfully");
     }
     
     /**
      * Shutsdown themis
      */
     public void shutdown() {
+        LOG.info("Shutting down Themis");
         taskManager.shutdown();
         jda.shutdown();
-        
     }
     
     public String getThemisOwner() {
@@ -176,14 +150,23 @@ public class Themis {
      * @param args
      */
     public static void main(String[] args) {
-        Themis themis = new Themis();
-        if(args.length == 1) {
-            themis.start(new File(args[0]));
-        } else {
-            themis.start();
+        try {
+            Themis themis = new Themis();
+            if(args.length == 1) {
+                themis.start(new File(args[0]));
+            } else {
+                themis.start();
+            }
+            Runtime.getRuntime().addShutdownHook(new Thread(()->{
+                try {
+                    themis.shutdown();
+                } catch(Throwable e) {
+                    LOG.error("Could not shutdown themis safely.", e);
+                }
+            }));
+        } catch(Throwable e) {
+            LOG.error("Fatal error. Themis must shut down.", e);
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(()->{
-            themis.shutdown();
-        }));
+
     }
 }

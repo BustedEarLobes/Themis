@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
@@ -16,7 +17,7 @@ import net.dv8tion.jda.core.entities.User;
 
 public class MuteToggleTask extends ScheduledTask {
     private static final long serialVersionUID = 1L;
-    private static Logger LOG = Logger.getLogger("Themis");
+    private static Logger LOG = LoggerFactory.getLogger(MuteToggleTask.class);
     
     private List<String> targetUserIds = new ArrayList<String>();
 
@@ -75,7 +76,8 @@ public class MuteToggleTask extends ScheduledTask {
             try {
                 timeUnit.sleep(time);
             } catch(InterruptedException e) {
-                LOG.log(Level.SEVERE, "Interrupted sleep", e);
+                LOG.error("Interrupted sleep", e);
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -120,11 +122,11 @@ public class MuteToggleTask extends ScheduledTask {
           }
         }
         String muteString = mute ? "Muted" : "Unmuted";
-        LOG.info(String.format("%s %s on text channel %s in guild %s",
+        LOG.info("{} {} on text channel {} in guild {}",
                 muteString,
                 userNamesFormated,
                 channel.getName(),
-                guild.getName()));
+                guild.getName());
         TextChannel logChannel = getTextChannelById(targetLogChannelId, guild);
         logChannel.sendMessage(muteString + " " + userNamesFormated).complete();
     }

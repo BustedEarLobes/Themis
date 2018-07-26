@@ -2,8 +2,9 @@ package com.github.bustedearlobes.themis.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.Themis;
 
@@ -12,7 +13,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
     public static final String COMMAND_BASE = "!";
-    private static final Logger LOG = Logger.getLogger("Themis");
+    private static final Logger LOG = LoggerFactory.getLogger(CommandListener.class);
     
     private List<Command> commands = new ArrayList<>();
     private Themis themis;
@@ -44,10 +45,8 @@ public class CommandListener extends ListenerAdapter {
                                         event.getMessage(),
                                         event.getJDA(),
                                         themis);
-                            } catch(Exception e) {
-                                LOG.log(Level.WARNING,
-                                        "There was an error while executing a command.",
-                                        e);
+                            } catch(Throwable e) {
+                                LOG.warn("There was an error while executing a command.", e);
                             }
                         } else {
                             command.printUsage(event.getMessage().getTextChannel());
@@ -59,10 +58,8 @@ public class CommandListener extends ListenerAdapter {
                                         event.getMessage(),
                                         event.getJDA(),
                                         themis);
-                            } catch(Exception e) {
-                                LOG.log(Level.WARNING,
-                                        "There was an error while executing a command.",
-                                        e);
+                            } catch(Throwable e) {
+                                LOG.warn("There was an error while executing a command.", e);
                             }
                         } else {
                             command.printUsage(event.getMessage().getTextChannel());

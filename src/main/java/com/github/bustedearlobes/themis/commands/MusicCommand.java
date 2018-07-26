@@ -1,8 +1,9 @@
 package com.github.bustedearlobes.themis.commands;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.Themis;
 import com.github.bustedearlobes.themis.music.GuildMusicManager;
@@ -20,7 +21,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.managers.AudioManager;
 
 public class MusicCommand extends Command {
-    private static final Logger LOG = Logger.getLogger("Themis");
+    private static final Logger LOG = LoggerFactory.getLogger(MusicCommand.class);
     
     private static final String REGEX = "^music (play|stop|pause|list|skip( (\\d+))?|clear|queue (.*)|ytsearch (.*))$";
     private static final int CAPTURE_GROUP_QUEUE = 4;
@@ -71,7 +72,7 @@ public class MusicCommand extends Command {
             if(message.getMember().getVoiceState().inVoiceChannel()) {
                 audioManager.openAudioConnection(message.getMember().getVoiceState().getChannel());
                 message.getTextChannel().sendMessage("Starting music bot").complete();
-                LOG.info("Starting music bot in guild " + guild.getName());
+                LOG.info("Starting music bot in guild {}", guild.getName());
                 themis.getTaskManager().addTask(new MusicInactivityTask(guild.getId()));
             } else {
                 message.getChannel().sendMessage("You are not in a voice channel").complete();
@@ -93,7 +94,7 @@ public class MusicCommand extends Command {
             musicManager.getAudioPlayer().stopTrack();
             audioManager.closeAudioConnection();
             message.getTextChannel().sendMessage("Stopping music bot").complete();
-            LOG.info("Stopping music bot in guild " + guild.getName());
+            LOG.info("Stopping music bot in guild - ({})", guild.getName());
         } else {
             message.getChannel().sendMessage("Themis is not connected to a voice channel!").complete();
         }        
@@ -124,7 +125,7 @@ public class MusicCommand extends Command {
         }
         String plural = numOfSkips > 1 ? "s" : "";
         message.getTextChannel().sendMessage("Skipping track" + plural).complete();
-        LOG.info("Skipping music track in guild " + guild.getName());
+        LOG.info("Skipping music track in guild {}", guild.getName());
     }
     
     private void clear(Message message, JDA jda, Themis themis) {
@@ -133,7 +134,7 @@ public class MusicCommand extends Command {
         musicManager.getTrackScheduler().clear();
         musicManager.getAudioPlayer().stopTrack();
         message.getTextChannel().sendMessage("Cleared the song queue").complete();
-        LOG.info("Cleared the song queue in quild " + guild.getName());
+        LOG.info("Cleared the song queue in guild {}", guild.getName());
     }
     
     private void queue(Matcher command, Message message, JDA jda, Themis themis) {
@@ -151,7 +152,7 @@ public class MusicCommand extends Command {
                         +"* by "
                         + track.getInfo().author
                         + " to the queue").complete();
-                LOG.info("Added " + track.getIdentifier() + " to the queue in guild " + guild.getName());
+                LOG.info("Added {} to the queue in guild {}", track.getIdentifier(), guild.getName());
             }
             
             @Override
@@ -164,10 +165,10 @@ public class MusicCommand extends Command {
                         + playlist.getName()
                         + " playlist with "
                         + playlist.getTracks().size() + " songs to the queue").complete();
-                LOG.info("Added playlist " + playlist.getName()
-                        + " with " + playlist.getTracks().size()
-                        + " songs to the queue in guild "
-                        + guild.getName());
+                LOG.info("Added playlist {} with {} songs to the queue in guild {}", 
+                        playlist.getName(), 
+                        playlist.getTracks().size(), 
+                        guild.getName());
 
             }
             
@@ -179,7 +180,7 @@ public class MusicCommand extends Command {
             @Override
             public void loadFailed(FriendlyException exception) {
                 logChannel.sendMessage("Could not load song at " + command.group(CAPTURE_GROUP_QUEUE)).complete();
-                LOG.log(Level.WARNING, "Failed to load song in guild " + guild.getName(), exception);
+                LOG.warn("Failed to load song in guild {}", guild.getName(), exception);
             }
         });
         
@@ -201,7 +202,7 @@ public class MusicCommand extends Command {
                         +"* by "
                         + track.getInfo().author
                         + " to the queue").complete();
-                LOG.info("Added " + track.getIdentifier() + " to the queue in guild " + guild.getName());
+                LOG.info("Added {} to the queue in guild {}", track.getIdentifier(), guild.getName());
             }
             
             @Override
@@ -213,7 +214,9 @@ public class MusicCommand extends Command {
                         +"* by "
                         + playlist.getTracks().get(0).getInfo().author
                         + " to the queue").complete();
-                LOG.info("Added " + playlist.getTracks().get(0).getIdentifier() + " to the queue in guild " + guild.getName());
+                LOG.info("Added {} to the queue in guild {}",
+                        playlist.getTracks().get(0).getIdentifier(),
+                        guild.getName());
             }
             
             @Override
@@ -224,7 +227,7 @@ public class MusicCommand extends Command {
             @Override
             public void loadFailed(FriendlyException exception) {
                 logChannel.sendMessage("Could not load song at " + command.group(CAPTURE_GROUP_YTSEARCH)).complete();
-                LOG.log(Level.WARNING, "Failed to load song in guild " + guild.getName(), exception);
+                LOG.warn("Failed to load song in guild {}", guild.getName(), exception);
             }
         });
         

@@ -1,14 +1,16 @@
 package com.github.bustedearlobes.themis.taskmanager;
 
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.music.GuildMusicManager;
 
 import net.dv8tion.jda.core.entities.Guild;
 
 public class MusicInactivityTask extends ScheduledTask {
-    private static final Logger LOG = Logger.getLogger("Themis");
+    private static final Logger LOG = LoggerFactory.getLogger(MusicInactivityTask.class);
     private String guildID;
     
     public MusicInactivityTask(String guildID) {
@@ -32,7 +34,7 @@ public class MusicInactivityTask extends ScheduledTask {
             musicManager.getTrackScheduler().clear();
             musicManager.getAudioPlayer().stopTrack();
             guild.getAudioManager().closeAudioConnection();
-            LOG.info("Closing audio connection in guild " + guild.getName() + " due to inactive channel");
+            LOG.info("Closing audio connection in guild {} due to inactive channel", guild.getName());
         } else {
             getThemis().getTaskManager().addTask(new MusicInactivityTask(guild.getId()));
         }

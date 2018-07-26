@@ -2,8 +2,9 @@ package com.github.bustedearlobes.themis.taskmanager;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.Themis;
 import com.github.bustedearlobes.themis.exceptions.EntityNotFoundException;
@@ -17,7 +18,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public abstract class ScheduledTask extends ListenerAdapter implements Runnable, Serializable {
     private static final long serialVersionUID = 2L;
-    private static final Logger LOG = Logger.getLogger("Themis");
+    private static final Logger LOG = LoggerFactory.getLogger(ScheduledTask.class);
     
     private long numberOfRuns = 0;
     private long periodicity;
@@ -41,15 +42,8 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
         getJDA().addEventListener(this);
         try {
             runTask();
-        } catch(Exception e) {
-            StackTraceElement[] st = e.getStackTrace();
-            if(st.length > 0) {
-                StackTraceElement lastStackTrace = st[st.length - 1];
-                LOG.logp(Level.WARNING, lastStackTrace.getClassName(), lastStackTrace.getMethodName(),
-                        "Exception occured in scheduled task.", e);
-            } else {
-                LOG.log(Level.WARNING, "Exception occured in scheduled task.", e);
-            }
+        } catch(Throwable e) {
+            LOG.warn("Exception occured in scheduled task.", e);
         } finally {
             getJDA().removeEventListener(this);
         }
@@ -78,7 +72,7 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
             cleanUpJDAChanges();
             success = true;
         } catch(Exception e) {
-            LOG.log(Level.SEVERE, "Error while cleaning up task.", e);
+            LOG.error("Error while cleaning up task.", e);
         }
         setState(TaskState.DEAD);
         return success;
@@ -105,14 +99,14 @@ public abstract class ScheduledTask extends ListenerAdapter implements Runnable,
     
     protected final JDA getJDA() {
         if(themis == null || themis.getJDA() == null) {
-            LOG.log(Level.SEVERE, "Themis or JDA are null in task. Cannot get JDA.");
+            LOG.error("Themis or JDA are null in task. Cannot get JDA.");
         }
         return themis.getJDA();
     }
     
     protected final Themis getThemis() {
         if(themis == null) {
-            LOG.log(Level.SEVERE, "Themis not set in task");
+            LOG.error("Themis not set in task");
         }
         return themis;
     }

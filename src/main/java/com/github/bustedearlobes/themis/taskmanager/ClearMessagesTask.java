@@ -3,7 +3,9 @@ package com.github.bustedearlobes.themis.taskmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -13,7 +15,7 @@ import net.dv8tion.jda.core.entities.User;
 public class ClearMessagesTask extends InstantTask {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG = Logger.getLogger("Themis");
+    private static final Logger LOG = LoggerFactory.getLogger(ClearMessagesTask.class);
     
     private String guildId;
     private String targetUserId;
@@ -58,16 +60,11 @@ public class ClearMessagesTask extends InstantTask {
         }
         String messageString = messages.size() == 1 ? "message" : "messages";
         String userName = getUserById(targetUserId).getName();
-        LOG.info("Cleared "
-                + messages.size()
-                + " "
-                + messageString
-                + " from "
-                + userName
-                + "@"
-                + targetChannel.getName()
-                + " in guild "
-                + guild.getName());
+        LOG.info("Cleared {} from {}@{} in guild {}",
+                messages.size(),
+                userName,
+                targetChannel.getName(),
+                guild.getName());
         loggingChannel.sendMessage("Cleared "
                 + messages.size()
                 + " "

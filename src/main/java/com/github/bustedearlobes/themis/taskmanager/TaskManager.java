@@ -16,13 +16,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.Themis;
 
 public class TaskManager implements Runnable {
-    private static final Logger LOG = Logger.getLogger("Themis");
+    private static final Logger LOG = LoggerFactory.getLogger(TaskManager.class);
     private static final File STATE_FILE = new File("themis_state.dat");
     
     private ExecutorService executor = Executors.newCachedThreadPool();
@@ -88,7 +89,9 @@ public class TaskManager implements Runnable {
             try {
                 TimeUnit.MICROSECONDS.sleep(5);
             } catch(InterruptedException e) {
-                LOG.log(Level.WARNING, "Interrupted main taskmanager thread.", e);
+                LOG.error("Interrupted main taskmanager thread.", e);
+                Thread.currentThread().interrupt();
+                return;
             }
         }
     }
@@ -99,13 +102,15 @@ public class TaskManager implements Runnable {
         LOG.info("Shutting down task manager. Awaiting 5 seconds max for safe task exit...");
         try {
             if(!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                LOG.warning("Could not shut down task manager safely. Timeout exceded");
+                LOG.warn("Could not shut down task manager safely. Timeout exceded.");
                 executor.shutdownNow();
             }
         } catch(InterruptedException e) {
-            LOG.log(Level.WARNING, "Could not shut down task manager safely. Interrupted Exception.", e);
+            LOG.warn("Could not shut down task manager safely. Interrupted exception.", e);
+            Thread.currentThread().interrupt();
+            return;
         }
-        LOG.log(Level.INFO, "Saving task manager state.");
+        LOG.info("Saving task manager state.");
         saveTasks();
     }
     
@@ -142,12 +147,12 @@ public class TaskManager implements Runnable {
                         }
                     }
                 }
-                LOG.log(Level.INFO, "Task manager cleaned up " + numberOfTasks + " tasks from last shutdown");            
+                LOG.info("Task manager cleaned up {} tasks from last shutdown", numberOfTasks);
             } catch(IOException | ClassNotFoundException e) {
-                LOG.log(Level.SEVERE, "Could not load older tasks to clean up.", e);
+                LOG.warn("Could not load older tasks to clean up", e);
             }
         } else {
-            LOG.log(Level.INFO, "Task manager had no tasks to clean up. State file does not exist.");
+            LOG.info("Task manager had no tasks to clean up. State file does not exist.");
         }
     }
     
@@ -163,8 +168,8 @@ public class TaskManager implements Runnable {
                     }
                 }
         } catch(IOException e) {
-            LOG.log(Level.SEVERE, "Could not save task manager tasks. Scheduled tasks will not "
-                    + "be cleaned up on unexpected shutdown!", e);
+            LOG.error("Could not save tasks manager tasks. Scheduled tasks "
+                    + "will not be cleaned up on unexpected shutdown!", e);
         }
     }
 }
