@@ -94,7 +94,7 @@ public class MusicCommand extends Command {
             musicManager.getAudioPlayer().stopTrack();
             audioManager.closeAudioConnection();
             message.getTextChannel().sendMessage("Stopping music bot").complete();
-            LOG.info("Stopping music bot in guild - ({})", guild.getName());
+            LOG.info("Stopping music bot in guild {}", guild.getName());
         } else {
             message.getChannel().sendMessage("Themis is not connected to a voice channel!").complete();
         }        
