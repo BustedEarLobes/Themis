@@ -14,6 +14,7 @@ import com.github.bustedearlobes.themis.commands.CommandListener;
 import com.github.bustedearlobes.themis.commands.HelpCommand;
 import com.github.bustedearlobes.themis.commands.MusicCommand;
 import com.github.bustedearlobes.themis.commands.MuteCommand;
+import com.github.bustedearlobes.themis.commands.OofCommand;
 import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
 import com.github.bustedearlobes.themis.music.GlobalMusicManager;
@@ -50,7 +51,7 @@ public class Themis {
                 Scanner scanner = new Scanner(bis);) {
             String key = scanner.nextLine().trim();
             themisOwner = scanner.nextLine().trim();
-            jda = new JDABuilder(AccountType.BOT).setToken(key).buildBlocking();
+            jda = new JDABuilder(AccountType.BOT).setToken(key).build().awaitReady();
             LOG.info("JDA session successfully started.");
         } catch(IOException e) {
             LOG.error("Could not find or open api key file {}. JDA could not be created", apiKey, e);
@@ -74,6 +75,7 @@ public class Themis {
         commandListener.register(new HelpCommand());
         commandListener.register(new ClearCommand());
         commandListener.register(new MusicCommand());
+        commandListener.register(new OofCommand());
     }
     
     /**

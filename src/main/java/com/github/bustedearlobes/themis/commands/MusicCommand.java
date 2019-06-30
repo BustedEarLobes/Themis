@@ -244,8 +244,7 @@ public class MusicCommand extends Command {
              + "  **• skip:** Skips to the next song in the queue. Can skip multiple tracks.\n"
              + "  **• clear:** Clears the queue of all songs.\n"
              + "  **• queue:** Queues a song given the URL.\n"
-             + "  **• ytsearch:** Searches for a song on youtube given a query";
-                
+             + "  **• ytsearch:** Searches for a song on youtube given a query";          
     }
     
     @Override
