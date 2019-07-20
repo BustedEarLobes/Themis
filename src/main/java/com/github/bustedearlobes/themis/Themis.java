@@ -17,6 +17,7 @@ import com.github.bustedearlobes.themis.commands.MuteCommand;
 import com.github.bustedearlobes.themis.commands.OofCommand;
 import com.github.bustedearlobes.themis.commands.ShutdownCommand;
 import com.github.bustedearlobes.themis.commands.UnmuteCommand;
+import com.github.bustedearlobes.themis.messagelog.MessageLogger;
 import com.github.bustedearlobes.themis.music.GlobalMusicManager;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 
@@ -29,12 +30,15 @@ public class Themis {
     private JDA jda;
     private TaskManager taskManager;
     private CommandListener commandListener;
+    private MessageLogger messageLogger;
     private GlobalMusicManager musicManager;
     private String themisOwner;
-    
+    private String moderationChannelName;
+
     private void init(File apiKey) {
         initJDA(apiKey);
         initCommandListener();
+        initMessageLogger();
         initTaskManager();
         initMusicManager();
     }
@@ -51,6 +55,7 @@ public class Themis {
                 Scanner scanner = new Scanner(bis);) {
             String key = scanner.nextLine().trim();
             themisOwner = scanner.nextLine().trim();
+            moderationChannelName = scanner.nextLine().trim();
             jda = new JDABuilder(AccountType.BOT).setToken(key).build().awaitReady();
             LOG.info("JDA session successfully started.");
         } catch(IOException e) {
@@ -61,14 +66,14 @@ public class Themis {
             System.exit(1);
         }
     }
-    
+
     /**
      * Initializes the command listener and sets JDA hooks.
      */
     private void initCommandListener() {
         commandListener = new CommandListener(this);
         jda.addEventListener(commandListener);
-        
+
         commandListener.register(new MuteCommand());
         commandListener.register(new UnmuteCommand());
         commandListener.register(new ShutdownCommand());
@@ -77,14 +82,27 @@ public class Themis {
         commandListener.register(new MusicCommand());
         commandListener.register(new OofCommand());
     }
-    
+
+    /**
+     * Initializes the message logger and sets JDA hooks
+     */
+    private void initMessageLogger() {
+        try {
+            messageLogger = new MessageLogger(this);
+        } catch(IOException e) {
+            LOG.error("Could not initialize message logger", e);
+            System.exit(1);
+        }
+        jda.addEventListener(messageLogger);
+    }
+
     /**
      * Initializes the task manager
      */
     private void initTaskManager() {
         taskManager = new TaskManager(this);
     }
-    
+
     /**
      * Initializes the global music manager
      */
@@ -95,7 +113,7 @@ public class Themis {
     public void start() {
         start(new File("API_KEY.dat"));
     }
-    
+
     /**
      * Starts up Themis.
      */
@@ -104,7 +122,7 @@ public class Themis {
         new Thread(taskManager, "TaskManager").start();
         LOG.info("Themis started successfully");
     }
-    
+
     /**
      * Shutsdown themis
      */
@@ -113,11 +131,15 @@ public class Themis {
         taskManager.shutdown();
         jda.shutdown();
     }
-    
+
     public String getThemisOwner() {
         return themisOwner;
     }
 
+    public String getModerationChannelName() {
+        return moderationChannelName;
+    }
+    
     /**
      * Gets the Themis task manager. Used to add tasks to the queue.
      * 
@@ -126,7 +148,7 @@ public class Themis {
     public TaskManager getTaskManager() {
         return taskManager;
     }
-    
+
     public GlobalMusicManager getGlobalMusicManager() {
         return musicManager;
     }
@@ -139,9 +161,10 @@ public class Themis {
     public JDA getJDA() {
         return jda;
     }
-    
+
     /**
      * Gets the command listener object.
+     * 
      * @return The Themis command listener
      */
     public CommandListener getCommandListener() {
@@ -159,7 +182,7 @@ public class Themis {
             } else {
                 themis.start();
             }
-            Runtime.getRuntime().addShutdownHook(new Thread(()->{
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
                     themis.shutdown();
                 } catch(Throwable e) {

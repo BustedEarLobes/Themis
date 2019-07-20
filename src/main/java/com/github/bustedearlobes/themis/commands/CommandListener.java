@@ -32,7 +32,7 @@ public class CommandListener extends ListenerAdapter {
     
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
-        String messageContent = event.getMessage().getContentRaw();
+        String messageContent = event.getMessage().getContentDisplay();
         if(messageContent.trim().startsWith(COMMAND_BASE)) {
             messageContent = messageContent.trim().replaceFirst(COMMAND_BASE, "");
             String commandName = messageContent.trim().split(" ")[0];
