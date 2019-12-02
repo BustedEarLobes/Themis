@@ -10,9 +10,9 @@ import com.github.bustedearlobes.themis.taskmanager.MuteToggleTask;
 import com.github.bustedearlobes.themis.taskmanager.ScheduledTask;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class MuteCommand extends Command {
     private static final String REGEX = "^(mute)( @\\w+)+( #\\w+)?( (\\d+)(s|m|h|d))?$";

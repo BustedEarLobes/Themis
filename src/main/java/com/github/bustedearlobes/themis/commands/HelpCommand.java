@@ -4,8 +4,9 @@ import java.util.regex.Matcher;
 
 import com.github.bustedearlobes.themis.Themis;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
+
 
 public class HelpCommand extends Command {
     private static final String REGEX = "^help( (\\w+))?$";

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
@@ -15,14 +14,14 @@ import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.Themis;
 
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.Message.Attachment;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.message.guild.GenericGuildMessageEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class MessageLogger extends ListenerAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(MessageLogger.class);
@@ -73,7 +72,7 @@ public class MessageLogger extends ListenerAdapter {
                     for(Attachment attachment : attachments) {
                         try {
                             File f = getUniqueFile(FilenameUtils.getExtension(attachment.getFileName()));
-                            if(attachment.download(f)) {
+                            if(attachment.downloadToFile().complete(f)) {
                                 LOG.info("Created new attachment for replay at {}", f.getAbsolutePath());
                                 moderationChannel.sendFile(f).complete();
                                 f.delete();
@@ -108,7 +107,7 @@ public class MessageLogger extends ListenerAdapter {
                     for(Attachment attachment : attachments) {
                         try {
                             File f = getUniqueFile(FilenameUtils.getExtension(attachment.getFileName()));
-                            if(attachment.download(f)) {
+                            if(attachment.downloadToFile().complete(f)) {
                                 LOG.info("Created new attachment for replay at {}", f.getAbsolutePath());
                                 moderationChannel.sendFile(f).complete();
                                 f.delete();

@@ -1,9 +1,11 @@
 package com.github.bustedearlobes.themis.music;
 
+import java.nio.ByteBuffer;
+
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
 
-import net.dv8tion.jda.core.audio.AudioSendHandler;
+import net.dv8tion.jda.api.audio.AudioSendHandler;
 
 /**
  * This is a wrapper around AudioPlayer which makes it behave as an
@@ -30,8 +32,8 @@ public class AudioPlayerSendHandler implements AudioSendHandler {
     }
 
     @Override
-    public byte[] provide20MsAudio() {
-        return lastFrame.getData();
+    public ByteBuffer provide20MsAudio() {
+        return ByteBuffer.wrap(lastFrame.getData());
     }
 
     @Override
