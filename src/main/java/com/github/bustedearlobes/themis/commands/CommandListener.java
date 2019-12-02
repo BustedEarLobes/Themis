@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.Themis;
 
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class CommandListener extends ListenerAdapter {
     public static final String COMMAND_BASE = "!";

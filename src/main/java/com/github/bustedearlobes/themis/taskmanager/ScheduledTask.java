@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.github.bustedearlobes.themis.Themis;
 import com.github.bustedearlobes.themis.exceptions.EntityNotFoundException;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public abstract class ScheduledTask extends ListenerAdapter implements Runnable, Serializable {
     private static final long serialVersionUID = 2L;

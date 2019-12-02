@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.bustedearlobes.themis.music.GuildMusicManager;
 
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 
 public class OofShutdownTask extends ScheduledTask {
     private static final Logger LOG = LoggerFactory.getLogger(OofShutdownTask.class);

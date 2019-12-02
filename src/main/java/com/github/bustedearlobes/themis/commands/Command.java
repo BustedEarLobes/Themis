@@ -5,9 +5,9 @@ import java.util.regex.Pattern;
 
 import com.github.bustedearlobes.themis.Themis;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public abstract class Command {
     private Pattern pattern;

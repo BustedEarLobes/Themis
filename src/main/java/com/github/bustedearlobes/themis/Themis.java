@@ -21,9 +21,9 @@ import com.github.bustedearlobes.themis.messagelog.MessageLogger;
 import com.github.bustedearlobes.themis.music.GlobalMusicManager;
 import com.github.bustedearlobes.themis.taskmanager.TaskManager;
 
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 
 public class Themis {
     private final static Logger LOG = LoggerFactory.getLogger(Themis.class);
